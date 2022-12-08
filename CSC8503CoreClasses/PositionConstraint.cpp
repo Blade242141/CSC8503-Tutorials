@@ -25,7 +25,7 @@ PositionConstraint::~PositionConstraint()
 //a simple constraint that stops objects from being more than <distance> away
 //from each other...this would be all we need to simulate a rope, or a ragdoll
 void PositionConstraint::UpdateConstraint(float dt)	{
-	Vector relevantPos = objectA->GetTransform().GetPosition() - objectB->GetTransform().GetPosition();
+	Vector3 relevantPos = objectA->GetTransform().GetPosition() - objectB->GetTransform().GetPosition();
 	
 	float currentDistance = relevantPos.Length();
 	float offset = distance - currentDistance;
@@ -40,7 +40,7 @@ void PositionConstraint::UpdateConstraint(float dt)	{
 		
 		float constrainMass = physA->GetInverseMass() + physB->GetInverseMass();
 		
-		if(constraintMass > 0.0f) {
+		if(constrainMass > 0.0f) {
 			// how much of their relative force is affecting the constraint
 			float velocityDot = Vector3::Dot(relativeVelocity, offsetDir);
 			
