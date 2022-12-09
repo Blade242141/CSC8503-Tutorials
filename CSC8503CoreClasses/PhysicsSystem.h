@@ -26,6 +26,8 @@ namespace NCL {
 			float GetLinearDamping() { return linearDamping; }
 			void SetLinearDamping(float d) { linearDamping = d; }
 
+			void ToggleUseBroadPhase() { useBroadPhase != useBroadPhase; }
+
 		protected:
 			void BasicCollisionDetection();
 			void BroadPhase();

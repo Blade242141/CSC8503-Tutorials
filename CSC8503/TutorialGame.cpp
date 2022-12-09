@@ -536,25 +536,22 @@ void TutorialGame::MoveSelectedObject() {
 			}
 		}
 	}
-	else if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::W)) {
+	
+	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::W)) 
 		selectionObject->GetPhysicsObject()->AddForceAtPosition(Vector3(1, 0, 0) * forceMagnitude, selectionObject->GetTransform().GetPosition());
-	}
-	else if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::A)) {
+	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::A)) 
 		selectionObject->GetPhysicsObject()->AddForceAtPosition(Vector3(0, 0, -1) * forceMagnitude, selectionObject->GetTransform().GetPosition());
-	}
-	else if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::S)) {
+	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::S)) 
 		selectionObject->GetPhysicsObject()->AddForceAtPosition(Vector3(-1, 0, 0) * forceMagnitude, selectionObject->GetTransform().GetPosition());
-	}
-	else if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::D)) {
+	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::D)) 
 		selectionObject->GetPhysicsObject()->AddForceAtPosition(Vector3(0, 0, 1) * forceMagnitude, selectionObject->GetTransform().GetPosition());
-	}
-	else if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::SPACE)) {
+	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::SPACE)) 
 		selectionObject->GetPhysicsObject()->AddForceAtPosition(Vector3(0, 1, 0) * forceMagnitude, selectionObject->GetTransform().GetPosition());
-	}
-	else if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::SHIFT)) {
+	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::SHIFT)) 
 		selectionObject->GetPhysicsObject()->AddForceAtPosition(Vector3(0, -1, 0) * forceMagnitude, selectionObject->GetTransform().GetPosition());
-	}
 
+	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::L))
+		physics->ToggleUseBroadPhase();
 }
 
 void TutorialGame::BridgeConstraintTest() {
