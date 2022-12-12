@@ -85,6 +85,7 @@ void TutorialGame::UpdateGame(float dt) {
 		world->GetMainCamera()->SetPosition(camPos);
 		world->GetMainCamera()->SetPitch(angles.x);
 		world->GetMainCamera()->SetYaw(angles.y);
+
 	}
 
 	UpdateKeys();
@@ -128,6 +129,11 @@ void TutorialGame::UpdateGame(float dt) {
 
 	renderer->Render();
 	Debug::UpdateRenderables(dt);
+
+	if (testStateObj) {
+		testStateObj->Update(dt);
+		std::cout << testStateObj->IsActive() << std::endl;
+	}
 }
 
 void TutorialGame::UpdateKeys() {
@@ -248,13 +254,16 @@ void TutorialGame::InitCamera() {
 void TutorialGame::InitWorld() {
 	world->ClearAndErase();
 	physics->Clear();
+	
+	testStateObj = AddStateObjToWorld(Vector3(0, 0, 0), Vector3 (1, 1, 1), 10.0f);
+	world->AddGameObject(testStateObj);
 
-	InitMixedGridWorld(15, 15, 3.5f, 3.5f);
+	//InitMixedGridWorld(15, 15, 3.5f, 3.5f);
 
-	BridgeConstraintTest();
+	//sBridgeConstraintTest();
 
-	InitGameExamples();
-	InitDefaultFloor();
+	//InitGameExamples();
+	//InitDefaultFloor();
 }
 
 /*
@@ -404,6 +413,24 @@ GameObject* TutorialGame::AddBonusToWorld(const Vector3& position) {
 	world->AddGameObject(apple);
 
 	return apple;
+}
+
+StateGameObject* TutorialGame::AddStateObjToWorld(const Vector3& pos, Vector3 dimensions, float inverseMass) {
+	StateGameObject* obj = new StateGameObject();
+
+	AABBVolume* volume = new AABBVolume(dimensions);
+	obj->SetBoundingVolume((CollisionVolume*)volume);
+	obj->GetTransform()
+		.SetScale(pos)
+		.SetPosition(dimensions * 2);
+
+	obj->SetRenderObject(new RenderObject(&obj->GetTransform(), cubeMesh, basicTex, basicShader));
+	obj->SetPhysicsObject(new PhysicsObject(&obj->GetTransform(), obj->GetBoundingVolume()));
+
+	obj->GetPhysicsObject()->SetInverseMass(inverseMass);
+	obj->GetPhysicsObject()->InitSphereInertia();
+	
+	return obj;
 }
 
 void TutorialGame::InitDefaultFloor() {

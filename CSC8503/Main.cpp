@@ -84,3 +84,30 @@ int main() {
 	}
 	Window::DestroyGameWindow();
 }
+
+void TestStateMachine() {
+	StateMachine* testMachine = new StateMachine();
+	int data = 0;
+
+	//Create the different states
+	State* A = new State([&](float dt)->void {
+		std::cout << "Current State - A" << std::endl;
+		data++;
+		});
+
+	State* B = new State([&](float dt)->void {
+		std::cout << "Current State - B	" << std::endl;
+		data--;
+		});
+
+	StateTransition* stateAB = new StateTransition(A, B, [&](void)->bool { return data > 10; }); // Go from state A to state B
+	StateTransition* stateBA = new StateTransition(A, B, [&](void)->bool { return data < 0; }); // Go from state B to state A
+
+	testMachine->AddState(A);
+	testMachine->AddState(B);
+	testMachine->AddTransition(stateAB);
+	testMachine->AddTransition(stateBA);
+
+	for (int i = 0; i < 100; ++i)
+		testMachine->Update(1.0f);
+}
