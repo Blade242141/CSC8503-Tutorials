@@ -31,10 +31,30 @@ using namespace CSC8503;
 #include <thread>
 #include <sstream>
 
-void TestPathfinding() {
+vector<Vector3> testNodes;
+void TestPathFinding() {
+	NavigationGrid grid("TestGrid1.txt");
+
+	NavigationPath outPath;
+
+	Vector3 startPos(80, 0, 10);
+	Vector3 endPos(80, 0, 80);
+
+	bool found = grid.FindPath(startPos, endPos, outPath);
+
+	Vector3 pos;
+	while (outPath.PopWaypoint(pos)) {
+		testNodes.push_back(pos);
+	}
 }
 
-void DisplayPathfinding() {
+void DisplayPathFinding() {
+	for (int i = 1; i < testNodes.size(); ++i) {
+		Vector3 a = testNodes[i - 1];
+		Vector3 b = testNodes[i];
+
+		Debug::DrawLine(a, b, Vector4(0, 1, 0, 1));
+	}
 }
 
 /*
@@ -62,6 +82,8 @@ int main() {
 	TutorialGame* g = new TutorialGame();
 	w->GetTimer()->GetTimeDeltaSeconds(); //Clear the timer so we don't get a larget first dt!
 	while (w->UpdateWindow() && !Window::GetKeyboard()->KeyDown(KeyboardKeys::ESCAPE)) {
+		TestPathFinding();
+		DisplayPathFinding();
 		float dt = w->GetTimer()->GetTimeDeltaSeconds();
 		if (dt > 0.1f) {
 			std::cout << "Skipping large time delta" << std::endl;
@@ -83,6 +105,7 @@ int main() {
 		g->UpdateGame(dt);
 	}
 	Window::DestroyGameWindow();
+
 }
 
 void TestStateMachine() {
