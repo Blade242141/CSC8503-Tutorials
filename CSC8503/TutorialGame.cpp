@@ -132,7 +132,6 @@ void TutorialGame::UpdateGame(float dt) {
 
 	if (testStateObj) {
 		testStateObj->Update(dt);
-		std::cout << testStateObj->IsActive() << std::endl;
 	}
 }
 
@@ -255,15 +254,14 @@ void TutorialGame::InitWorld() {
 	world->ClearAndErase();
 	physics->Clear();
 	
-	testStateObj = AddStateObjToWorld(Vector3(0, 0, 0), Vector3 (1, 1, 1), 10.0f);
-	world->AddGameObject(testStateObj);
+	testStateObj = AddStateObjToWorld(Vector3(-10, 10, -10), Vector3(2, 2, 2), 10.0f);
 
-	//InitMixedGridWorld(15, 15, 3.5f, 3.5f);
+	InitMixedGridWorld(15, 15, 3.5f, 3.5f);
 
-	//sBridgeConstraintTest();
+	BridgeConstraintTest();
 
-	//InitGameExamples();
-	//InitDefaultFloor();
+	InitGameExamples();
+	InitDefaultFloor();
 }
 
 /*
@@ -416,21 +414,24 @@ GameObject* TutorialGame::AddBonusToWorld(const Vector3& position) {
 }
 
 StateGameObject* TutorialGame::AddStateObjToWorld(const Vector3& pos, Vector3 dimensions, float inverseMass) {
-	StateGameObject* obj = new StateGameObject();
+	StateGameObject* cube = new StateGameObject();
 
 	AABBVolume* volume = new AABBVolume(dimensions);
-	obj->SetBoundingVolume((CollisionVolume*)volume);
-	obj->GetTransform()
-		.SetScale(pos)
-		.SetPosition(dimensions * 2);
+	cube->SetBoundingVolume((CollisionVolume*)volume);
 
-	obj->SetRenderObject(new RenderObject(&obj->GetTransform(), cubeMesh, basicTex, basicShader));
-	obj->SetPhysicsObject(new PhysicsObject(&obj->GetTransform(), obj->GetBoundingVolume()));
+	cube->GetTransform()
+		.SetPosition(pos)
+		.SetScale(dimensions * 2);
 
-	obj->GetPhysicsObject()->SetInverseMass(inverseMass);
-	obj->GetPhysicsObject()->InitSphereInertia();
-	
-	return obj;
+	cube->SetRenderObject(new RenderObject(&cube->GetTransform(), cubeMesh, basicTex, basicShader));
+	cube->SetPhysicsObject(new PhysicsObject(&cube->GetTransform(), cube->GetBoundingVolume()));
+
+	cube->GetPhysicsObject()->SetInverseMass(inverseMass);
+	cube->GetPhysicsObject()->InitCubeInertia();
+
+	world->AddGameObject(cube);
+
+	return cube;
 }
 
 void TutorialGame::InitDefaultFloor() {
@@ -582,13 +583,13 @@ void TutorialGame::MoveSelectedObject() {
 }
 
 void TutorialGame::BridgeConstraintTest() {
-	Vector3 cubeSize = Vector3(8, 8, 8);
+	Vector3 cubeSize = Vector3(4, 4, 4);
 	float invCubeMass = 5; //how heavy the middle pieces are
 	int numLinks = 10;
 	float maxDistance = 30; // constraint distance
 	float cubeDistance = 20; // distance between links
 
-	Vector3 startPos = Vector3(0, 0, 0);
+	Vector3 startPos = Vector3(0, 0, -75);
 
 	GameObject* start = AddCubeToWorld(startPos + Vector3(0, 0, 0), cubeSize, 0);
 	GameObject* end = AddCubeToWorld(startPos + Vector3((numLinks + 2) * cubeDistance, 0, 0), cubeSize, 0);
