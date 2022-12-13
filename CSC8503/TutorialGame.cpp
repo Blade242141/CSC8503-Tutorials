@@ -50,6 +50,7 @@ void TutorialGame::InitialiseAssets() {
 
 	InitCamera();
 	InitWorld();
+	//InitPlayer();
 }
 
 TutorialGame::~TutorialGame()	{
@@ -264,6 +265,13 @@ void TutorialGame::InitWorld() {
 	InitDefaultFloor();
 }
 
+void TutorialGame::InitPlayer() {
+	GameObject* player = AddPlayerToWorld(Vector3(0, 5, 0));
+	world->GetMainCamera()->SetPosition(Vector3(player->GetTransform().GetPosition().x, player->GetTransform().GetPosition().y + 5, player->GetTransform().GetPosition().z + 10));
+	lockedObject = player;
+	player->GetPhysicsObject()->SetElasticity(0.01);
+}
+
 /*
 
 A single function to add a large immoveable cube to the bottom of our world
@@ -439,7 +447,7 @@ void TutorialGame::InitDefaultFloor() {
 }
 
 void TutorialGame::InitGameExamples() {
-	AddPlayerToWorld(Vector3(0, 5, 0));
+	//AddPlayerToWorld(Vector3(0, 5, 0));
 	AddEnemyToWorld(Vector3(5, 5, 0));
 	AddBonusToWorld(Vector3(10, 5, 0));
 }
