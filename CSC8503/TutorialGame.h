@@ -9,7 +9,7 @@
 
 namespace NCL {
 	namespace CSC8503 {
-		class TutorialGame		{
+		class TutorialGame {
 		public:
 			TutorialGame();
 			~TutorialGame();
@@ -27,7 +27,7 @@ namespace NCL {
 			/*
 			These are some of the world/object creation functions I created when testing the functionality
 			in the module. Feel free to mess around with them to see different objects being created in different
-			test scenarios (constraints, collision types, and so on). 
+			test scenarios (constraints, collision types, and so on).
 			*/
 			void InitGameExamples();
 
@@ -57,14 +57,18 @@ namespace NCL {
 
 			//Added
 			void InitPlayer();
+			void InitGame();
+			bool isDebug;
+			GameObject* player;
+			void PlayerMovement();
 
 #ifdef USEVULKAN
-			GameTechVulkanRenderer*	renderer;
+			GameTechVulkanRenderer* renderer;
 #else
 			GameTechRenderer* renderer;
 #endif
-			PhysicsSystem*		physics;
-			GameWorld*			world;
+			PhysicsSystem* physics;
+			GameWorld* world;
 
 			bool useGravity;
 			bool inSelectionMode;
@@ -73,21 +77,21 @@ namespace NCL {
 
 			GameObject* selectionObject = nullptr;
 
-			MeshGeometry*	capsuleMesh = nullptr;
-			MeshGeometry*	cubeMesh	= nullptr;
-			MeshGeometry*	sphereMesh	= nullptr;
+			MeshGeometry* capsuleMesh = nullptr;
+			MeshGeometry* cubeMesh = nullptr;
+			MeshGeometry* sphereMesh = nullptr;
 
-			TextureBase*	basicTex	= nullptr;
-			ShaderBase*		basicShader = nullptr;
+			TextureBase* basicTex = nullptr;
+			ShaderBase* basicShader = nullptr;
 
 			//Coursework Meshes
-			MeshGeometry*	charMesh	= nullptr;
-			MeshGeometry*	enemyMesh	= nullptr;
-			MeshGeometry*	bonusMesh	= nullptr;
+			MeshGeometry* charMesh = nullptr;
+			MeshGeometry* enemyMesh = nullptr;
+			MeshGeometry* bonusMesh = nullptr;
 
 			//Coursework Additional functionality	
-			GameObject* lockedObject	= nullptr;
-			Vector3 lockedOffset		= Vector3(0, 14, 20);
+			GameObject* lockedObject = nullptr;
+			Vector3 lockedOffset = Vector3(0, 14, 20);
 			void LockCameraToObject(GameObject* o) {
 				lockedObject = o;
 			}
@@ -96,4 +100,3 @@ namespace NCL {
 		};
 	}
 }
-
