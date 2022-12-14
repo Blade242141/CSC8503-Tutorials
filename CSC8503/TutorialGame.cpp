@@ -138,11 +138,12 @@ void TutorialGame::UpdateGame(float dt) {
 	}
 	else {
 		//UpdateCamera
-		world->GetMainCamera()->UpdateCamera(dt);
+		//			Vector3 lockedOffset = Vector3(0, 14, 20);
+		//world->GetMainCamera()->UpdateCamera(dt);
 		
 		Vector3 objPos = player->GetTransform().GetPosition();
 		Vector3 camPos = objPos + (lockedOffset);
-		
+
 		Matrix4 temp = Matrix4::BuildViewMatrix(camPos, objPos, Vector3(0, 1, 0));
 
 		Matrix4 modelMat = temp.Inverse();
@@ -150,14 +151,26 @@ void TutorialGame::UpdateGame(float dt) {
 		Quaternion q(modelMat);
 		Vector3 angles = q.ToEuler();
 
-		//camPos = camPos + Vector3(player->GetTransform().GetOrientation().ToEuler().x, player->GetTransform().GetOrientation().ToEuler().y, player->GetTransform().GetOrientation().ToEuler().z);
+
+		//std::cout << player->GetTransform().GetOrientation().ToEuler().y << std::endl;
+	//float radius = 20;
+	//float angl = -(player->GetTransform().GetOrientation().ToEuler().y);
+	//if (angl < 0)
+	//	angl = -angl + 180;
+	//std::cout << angl << std::endl;
+
+	//camPos = Vector3(radius * sin(angl) + objPos.x, objPos.y + 14, radius * cos(angl) + objPos.z);
 
 		world->GetMainCamera()->SetPosition(camPos);
 		world->GetMainCamera()->SetPitch(angles.x);
 		world->GetMainCamera()->SetYaw(angles.y);
 
-
 		PlayerMovement();
+
+		if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::G)) {
+			useGravity != useGravity;
+			physics->UseGravity(useGravity);
+		}
 
 		if (useGravity) {
 			Debug::Print("(G)ravity on", Vector2(5, 95), Debug::RED);
