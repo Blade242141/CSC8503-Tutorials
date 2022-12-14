@@ -190,17 +190,27 @@ void TutorialGame::UpdateGame(float dt) {
 }
 
 void TutorialGame::PlayerMovement() {
-	//Movement
-	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::D))
-		player->GetPhysicsObject()->AddForceAtPosition(Vector3(1, 0, 0) * forceMagnitude, player->GetTransform().GetPosition());
-	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::W))
-		player->GetPhysicsObject()->AddForceAtPosition(Vector3(0, 0, -1) * forceMagnitude, player->GetTransform().GetPosition());
 	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::A))
-		player->GetPhysicsObject()->AddForceAtPosition(Vector3(-1, 0, 0) * forceMagnitude, player->GetTransform().GetPosition());
-	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::S))
-		player->GetPhysicsObject()->AddForceAtPosition(Vector3(0, 0, 1) * forceMagnitude, player->GetTransform().GetPosition());
-	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::SPACE))
-		player->GetPhysicsObject()->AddForceAtPosition(Vector3(0, 1, 0) * forceMagnitude, player->GetTransform().GetPosition());
+	player->GetPhysicsObject()->AddForce(Vector3(-1, 0, 0) * forceMagnitude);
+	
+	float yAngle = (player->GetTransform().GetOrientation().ToEuler().y / 180 * 360)/2;
+	if (yAngle < 0) {
+		yAngle = yAngle + 180 + 180;
+	}
+
+	//std::cout << y << std::endl;
+
+	//Movement
+	//if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::D))
+	//	player->GetPhysicsObject()->AddForceAtPosition(Vector3(1, 0, 0) * forceMagnitude, player->GetTransform().GetPosition());
+	//if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::W))
+	//	player->GetPhysicsObject()->AddForceAtPosition(Vector3(0, 0, -1) * forceMagnitude, player->GetTransform().GetPosition());
+	//if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::A))
+	//	player->GetPhysicsObject()->AddForceAtPosition(Vector3(-1, 0, 0) * forceMagnitude, player->GetTransform().GetPosition());
+	//if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::S))
+	//	player->GetPhysicsObject()->AddForceAtPosition(Vector3(0, 0, 1) * forceMagnitude, player->GetTransform().GetPosition());
+	//if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::SPACE))
+	//	player->GetPhysicsObject()->AddForceAtPosition(Vector3(0, 1, 0) * forceMagnitude, player->GetTransform().GetPosition());
 	//Rotation
 	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::Q))
 		player->GetPhysicsObject()->AddTorque(Vector3(0, 1, 0));
