@@ -151,19 +151,21 @@ void TutorialGame::UpdateGame(float dt) {
 		Quaternion q(modelMat);
 		Vector3 angles = q.ToEuler();
 
+		float yAngle = -(player->GetTransform().GetOrientation().ToEuler().y / 180 * 360) / 2;
+		if (yAngle < 0) {
+			yAngle = yAngle + 180 + 180;
+		}
 
 		//std::cout << player->GetTransform().GetOrientation().ToEuler().y << std::endl;
-	//float radius = 20;
-	//float angl = -(player->GetTransform().GetOrientation().ToEuler().y);
-	//if (angl < 0)
-	//	angl = -angl + 180;
-	//std::cout << angl << std::endl;
+	float radius = 20;
 
-	//camPos = Vector3(radius * sin(angl) + objPos.x, objPos.y + 14, radius * cos(angl) + objPos.z);
+	//camPos = Vector3(radius * cos(yAngle) + player->GetTransform().GetPosition().x, player->GetTransform().GetPosition().y + 14, radius * sin(yAngle) + player->GetTransform().GetPosition().z) * dt;
+
+	std::cout << "" << std::endl;
 
 		world->GetMainCamera()->SetPosition(camPos);
-		world->GetMainCamera()->SetPitch(angles.x);
-		world->GetMainCamera()->SetYaw(angles.y);
+		world->GetMainCamera()->SetPitch(angles.x +45);
+		world->GetMainCamera()->SetYaw(player->GetTransform().GetOrientation().ToEuler().y); // Now Rotates with goat
 
 		PlayerMovement();
 
@@ -193,13 +195,6 @@ void TutorialGame::PlayerMovement() {
 	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::A))
 	player->GetPhysicsObject()->AddForce(Vector3(-1, 0, 0) * forceMagnitude);
 	
-	float yAngle = (player->GetTransform().GetOrientation().ToEuler().y / 180 * 360)/2;
-	if (yAngle < 0) {
-		yAngle = yAngle + 180 + 180;
-	}
-
-	//std::cout << y << std::endl;
-
 	//Movement
 	//if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::D))
 	//	player->GetPhysicsObject()->AddForceAtPosition(Vector3(1, 0, 0) * forceMagnitude, player->GetTransform().GetPosition());
@@ -497,6 +492,30 @@ GameObject* TutorialGame::AddPlayerToWorld(const Vector3& position) {
 
 	return character;
 }
+
+//StateGameObject* TutorialGame::AddPersonToWorld(const Vector3& position) {
+//	float meshSize = 3.0f;
+//	float inverseMass = 0.5f;
+//
+//	GameObject* character = new GameObject();
+//
+//	AABBVolume* volume = new AABBVolume(Vector3(0.3f, 0.9f, 0.3f) * meshSize);
+//	character->SetBoundingVolume((CollisionVolume*)volume);
+//
+//	character->GetTransform()
+//		.SetScale(Vector3(meshSize, meshSize, meshSize))
+//		.SetPosition(position);
+//
+//	character->SetRenderObject(new RenderObject(&character->GetTransform(), enemyMesh, nullptr, basicShader));
+//	character->SetPhysicsObject(new PhysicsObject(&character->GetTransform(), character->GetBoundingVolume()));
+//
+//	character->GetPhysicsObject()->SetInverseMass(inverseMass);
+//	character->GetPhysicsObject()->InitSphereInertia();
+//
+//	world->AddGameObject(character);
+//
+//	return character;
+//}
 
 GameObject* TutorialGame::AddEnemyToWorld(const Vector3& position) {
 	float meshSize = 3.0f;

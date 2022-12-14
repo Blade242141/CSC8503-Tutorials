@@ -61,7 +61,7 @@ namespace NCL {
 			bool isDebug;
 			GameObject* player;
 			void PlayerMovement();
-
+			StateGameObject AddPersonToWorld();
 #ifdef USEVULKAN
 			GameTechVulkanRenderer* renderer;
 #else
