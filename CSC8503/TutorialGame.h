@@ -66,6 +66,8 @@ namespace NCL {
 			GameObject* AddMazeWallToWorld();
 			StateGameObject AddPersonToWorld();
 			void SpawnObjs();
+			void SpawnConnectionBridge(Vector3 startPos);
+
 #ifdef USEVULKAN
 			GameTechVulkanRenderer* renderer;
 #else
