@@ -27,7 +27,7 @@ TutorialGame::TutorialGame() {
 	useGravity = true;
 	inSelectionMode = false;
 
-	isDebug = false;
+	isDebug = true;
 
 	InitialiseAssets();
 }
@@ -339,13 +339,16 @@ void TutorialGame::InitWorld() {
 	world->ClearAndErase();
 	physics->Clear();
 
-	testStateObj = AddStateObjToWorld(Vector3(-10, 10, -10), Vector3(2, 2, 2), 10.0f);
+	//testStateObj = AddStateObjToWorld(Vector3(-10, 10, -10), Vector3(2, 2, 2), 10.0f);
 
-	InitMixedGridWorld(15, 15, 3.5f, 3.5f);
+	//InitMixedGridWorld(15, 15, 3.5f, 3.5f);
 
-	BridgeConstraintTest();
+	//BridgeConstraintTest();
+
+	InitMaze();
 
 	InitGameExamples();
+
 	InitDefaultFloor();
 }
 
@@ -386,6 +389,25 @@ void TutorialGame::InitPlayer() {
 	world->GetMainCamera()->SetPosition(Vector3(player->GetTransform().GetPosition().x, player->GetTransform().GetPosition().y + 5, player->GetTransform().GetPosition().z + 10));
 	//lockedObject = player;
 	player->GetPhysicsObject()->SetElasticity(0.01);
+}
+
+void TutorialGame::InitMaze() {
+	AddCubeToWorld(Vector3(0, 20.06, -36.4), Vector3(40, 5, 40), 10.0f, 1)->GetRenderObject()->SetColour(Vector4(1, 0.2, 1, 1)); // Upper level
+	AddCubeToWorld(Vector3(-44.4, 5.5, 100), Vector3(10, 10, 100), 10.0f, 1)->GetRenderObject()->SetColour(Vector4(0.2, 1, 1, 1)); // Connection wall
+	AddCubeToWorld(Vector3(-15.79, 2.97, 41.01), Vector3(15, 4, 50), 10.0f, 1)->GetTransform().SetOrientation(Quaternion().EulerAnglesToQuaternion(12.3, 91.14, 0)); // Connection Ramp	
+	AddCubeToWorld(Vector3(0, 0, -36.4), Vector3(10, 20, 10), 10.0f, 1)->GetRenderObject()->SetColour(Vector4(0.2, 0.2, 1, 1)); // Pillar
+	AddCubeToWorld(Vector3(-39.82, 7.65, -39.14), Vector3(15, 4, 50), 10.0f, 1)->GetTransform().SetOrientation(Quaternion().EulerAnglesToQuaternion(-32.1, 90, 0)); // Upper Ramp
+	AddCubeToWorld(Vector3(42.6, 5.5, 12.1), Vector3(5, 10, 55), 10.0f, 1)->GetRenderObject()->SetColour(Vector4(0.2, 0.2, 1, 1)); // Cross 1
+	AddCubeToWorld(Vector3(35.6, 5.5, 17.5), Vector3(5, 10, 55), 10.0f, 1)->GetTransform().SetOrientation(Quaternion().EulerAnglesToQuaternion(0, 60, 0)); // Cross 2
+	//AddCubeToWorld(Vector3(100, 0, 100), Vector3(40, 5, 2.5), 10.0f, 1)->GetRenderObject()->SetColour(Vector4(0.2, 0.2, 1, 1));
+
+}
+
+void TutorialGame::SpawnObjs() {
+	//Give game obj health that decrease with so much force acted apon
+	//Add objs to array for couter
+	//points from obj after attacked
+	//
 }
 
 /*
@@ -448,7 +470,7 @@ GameObject* TutorialGame::AddSphereToWorld(const Vector3& position, float radius
 	return sphere;
 }
 
-GameObject* TutorialGame::AddCubeToWorld(const Vector3& position, Vector3 dimensions, float inverseMass) {
+GameObject* TutorialGame::AddCubeToWorld(const Vector3& position, Vector3 dimensions, float inverseMass, float elasticity) {
 	GameObject* cube = new GameObject();
 
 	AABBVolume* volume = new AABBVolume(dimensions);
@@ -463,6 +485,9 @@ GameObject* TutorialGame::AddCubeToWorld(const Vector3& position, Vector3 dimens
 
 	cube->GetPhysicsObject()->SetInverseMass(inverseMass);
 	cube->GetPhysicsObject()->InitCubeInertia();
+	
+	// Different material elasticities
+	cube->GetPhysicsObject()->SetElasticity(elasticity);
 
 	world->AddGameObject(cube);
 

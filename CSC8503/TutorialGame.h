@@ -46,7 +46,7 @@ namespace NCL {
 
 			GameObject* AddFloorToWorld(const Vector3& position);
 			GameObject* AddSphereToWorld(const Vector3& position, float radius, float inverseMass = 10.0f);
-			GameObject* AddCubeToWorld(const Vector3& position, Vector3 dimensions, float inverseMass = 10.0f);
+			GameObject* AddCubeToWorld(const Vector3& position, Vector3 dimensions, float inverseMass = 10.0f, float elasticity = 0.4f);
 
 			GameObject* AddPlayerToWorld(const Vector3& position);
 			GameObject* AddEnemyToWorld(const Vector3& position);
@@ -61,7 +61,11 @@ namespace NCL {
 			bool isDebug;
 			GameObject* player;
 			void PlayerMovement();
+			void InitMaze();
+			void InitTargets();
+			GameObject* AddMazeWallToWorld();
 			StateGameObject AddPersonToWorld();
+			void SpawnObjs();
 #ifdef USEVULKAN
 			GameTechVulkanRenderer* renderer;
 #else
