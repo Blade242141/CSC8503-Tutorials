@@ -194,7 +194,7 @@ int main() {
 
 	TutorialGame* g = new TutorialGame();
 	w->GetTimer()->GetTimeDeltaSeconds(); //Clear the timer so we don't get a larget first dt!
-	TestBehaviourTree();
+	//TestBehaviourTree();
 	while (w->UpdateWindow() && !Window::GetKeyboard()->KeyDown(KeyboardKeys::ESCAPE)) {
 		TestPathFinding();
 		DisplayPathFinding();

@@ -27,7 +27,7 @@ TutorialGame::TutorialGame() {
 	useGravity = true;
 	inSelectionMode = false;
 
-	isDebug = true;
+	isDebug = false;
 
 	InitialiseAssets();
 }
@@ -73,6 +73,12 @@ TutorialGame::~TutorialGame() {
 }
 
 void TutorialGame::UpdateGame(float dt) {
+	if (Window::GetKeyboard()->KeyHeld(KeyboardKeys::M)) {
+		isDebug = !isDebug;
+		std::cout << "Debug: " << isDebug << std::endl;
+	}
+	world->GetMainCamera()->UpdateCamera(dt);
+
 	if (isDebug) {
 		if (!inSelectionMode) {
 			world->GetMainCamera()->UpdateCamera(dt);
@@ -137,10 +143,6 @@ void TutorialGame::UpdateGame(float dt) {
 		Debug::UpdateRenderables(dt);
 	}
 	else {
-		//UpdateCamera
-		//			Vector3 lockedOffset = Vector3(0, 14, 20);
-		//world->GetMainCamera()->UpdateCamera(dt);
-		
 		Vector3 objPos = player->GetTransform().GetPosition();
 		Vector3 camPos = objPos + (lockedOffset);
 
@@ -151,20 +153,23 @@ void TutorialGame::UpdateGame(float dt) {
 		Quaternion q(modelMat);
 		Vector3 angles = q.ToEuler();
 
-		float yAngle = -(player->GetTransform().GetOrientation().ToEuler().y / 180 * 360) / 2;
-		if (yAngle < 0) {
-			yAngle = yAngle + 180 + 180;
-		}
+		float yAngle = (player->GetTransform().GetOrientation().ToEuler().y / 180 * 360) / 2; // Convert Y angle to 0-360 scale
 
-		//std::cout << player->GetTransform().GetOrientation().ToEuler().y << std::endl;
-	float radius = 20;
+		if (yAngle < 0) { yAngle = yAngle + 180 + 180; } // Convert stop 180 jumping to 360
 
-	//camPos = Vector3(radius * cos(yAngle) + player->GetTransform().GetPosition().x, player->GetTransform().GetPosition().y + 14, radius * sin(yAngle) + player->GetTransform().GetPosition().z) * dt;
+		yAngle = (yAngle * 3.14159265 / 180); // Get yAngle ready for pos
 
-	std::cout << "" << std::endl;
+		float radius = 20;
 
-		world->GetMainCamera()->SetPosition(camPos);
-		world->GetMainCamera()->SetPitch(angles.x +45);
+		// Set position offset on circle based on yAngle
+		Vector3 pos = Vector3(
+			(radius * sin(yAngle)) + player->GetTransform().GetPosition().x,
+			player->GetTransform().GetPosition().y + 14,
+			(radius * cos(yAngle)) + player->GetTransform().GetPosition().z
+		);
+
+		world->GetMainCamera()->SetPosition(pos);
+		world->GetMainCamera()->SetPitch(angles.x);
 		world->GetMainCamera()->SetYaw(player->GetTransform().GetOrientation().ToEuler().y); // Now Rotates with goat
 
 		PlayerMovement();
@@ -348,6 +353,7 @@ void TutorialGame::InitWorld() {
 	InitMaze();
 
 	InitGameExamples();
+	InitPlayer();
 
 	InitDefaultFloor();
 }
@@ -387,6 +393,7 @@ void TutorialGame::InitPlayer() {
 	world->AddGameObject(player);
 
 	world->GetMainCamera()->SetPosition(Vector3(player->GetTransform().GetPosition().x, player->GetTransform().GetPosition().y + 5, player->GetTransform().GetPosition().z + 10));
+
 	//lockedObject = player;
 	player->GetPhysicsObject()->SetElasticity(0.01);
 }
