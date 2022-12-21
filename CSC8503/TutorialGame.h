@@ -63,11 +63,10 @@ namespace NCL {
 			PlayerGameObject* player;
 			void PlayerMovement();
 			void InitMaze();
-			void InitTargets();
-			GameObject* AddMazeWallToWorld();
-			StateGameObject AddPersonToWorld();
 			void SpawnObjs();
 			void SpawnConnectionBridge(Vector3 startPos);
+			GameObject* AddOBBCubeToWorld(const Vector3& position, Vector3 dimensions, float inverseMass, float elasticity, bool canTakedmg);
+
 
 #ifdef USEVULKAN
 			GameTechVulkanRenderer* renderer;
