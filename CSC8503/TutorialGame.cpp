@@ -24,7 +24,7 @@ TutorialGame::TutorialGame() {
 	physics = new PhysicsSystem(*world);
 
 	forceMagnitude = 10.0f;
-	useGravity = true;
+	useGravity = false;
 	inSelectionMode = false;
 
 	isDebug = false;
@@ -157,6 +157,8 @@ void TutorialGame::UpdateGame(float dt) {
 
 		if (yAngle < 0) { yAngle = yAngle + 180 + 180; } // Convert stop 180 jumping to 360
 
+		PlayerMovement();
+
 		yAngle = (yAngle * 3.14159265 / 180); // Get yAngle ready for pos
 
 		float radius = 20;
@@ -171,13 +173,6 @@ void TutorialGame::UpdateGame(float dt) {
 		world->GetMainCamera()->SetPosition(pos);
 		world->GetMainCamera()->SetPitch(angles.x);
 		world->GetMainCamera()->SetYaw(player->GetTransform().GetOrientation().ToEuler().y); // Now Rotates with goat
-
-		PlayerMovement();
-
-		if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::G)) {
-			useGravity != useGravity;
-			physics->UseGravity(useGravity);
-		}
 
 		if (useGravity) {
 			Debug::Print("(G)ravity on", Vector2(5, 95), Debug::RED);
@@ -197,32 +192,45 @@ void TutorialGame::UpdateGame(float dt) {
 }
 
 void TutorialGame::PlayerMovement() {
-	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::A))
-	player->GetPhysicsObject()->AddForce(Vector3(-1, 0, 0) * forceMagnitude);
-	
-	//Movement
-	//if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::D))
-	//	player->GetPhysicsObject()->AddForceAtPosition(Vector3(1, 0, 0) * forceMagnitude, player->GetTransform().GetPosition());
-	//if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::W))
-	//	player->GetPhysicsObject()->AddForceAtPosition(Vector3(0, 0, -1) * forceMagnitude, player->GetTransform().GetPosition());
-	//if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::A))
-	//	player->GetPhysicsObject()->AddForceAtPosition(Vector3(-1, 0, 0) * forceMagnitude, player->GetTransform().GetPosition());
-	//if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::S))
-	//	player->GetPhysicsObject()->AddForceAtPosition(Vector3(0, 0, 1) * forceMagnitude, player->GetTransform().GetPosition());
-	//if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::SPACE))
-	//	player->GetPhysicsObject()->AddForceAtPosition(Vector3(0, 1, 0) * forceMagnitude, player->GetTransform().GetPosition());
-	//Rotation
-	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::Q))
-		player->GetPhysicsObject()->AddTorque(Vector3(0, 1, 0));
-	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::E))
-		player->GetPhysicsObject()->AddTorque(Vector3(0, -1, 0));
+	Matrix4 view = world->GetMainCamera()->BuildViewMatrix();
+	Matrix4 camWorld = view.Inverse();
 
-	//player->GetTransform().SetOrientation(Quaternion(0.0f, player->GetTransform().GetOrientation().y, 0.0f, 0.0f));
+	Vector3 rightAxis = Vector3(camWorld.GetColumn(0)); //view is inverse of model!
+
+	Vector3 fwdAxis = Vector3::Cross(Vector3(0, 1, 0), rightAxis);
+	fwdAxis.y = 0.0f;
+	fwdAxis.Normalise();
+
+	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::W))
+		player->GetPhysicsObject()->AddForce(fwdAxis * forceMagnitude);
+
+	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::A))
+		player->GetPhysicsObject()->AddForce(-rightAxis * forceMagnitude);
+
+	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::D))
+		player->GetPhysicsObject()->AddForce(rightAxis * forceMagnitude);
+
+	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::S))
+		player->GetPhysicsObject()->AddForce(-fwdAxis * forceMagnitude);
 
 	//Add Dash Here
 	if (Window::GetKeyboard()->KeyPressed(NCL::KeyboardKeys::SHIFT))
-		player->GetPhysicsObject()->AddForceAtPosition(Vector3(0, 0, -1) * forceMagnitude*100, player->GetTransform().GetPosition());
+		player->GetPhysicsObject()->ApplyLinearImpulse(fwdAxis * 30.0f);
 
+	if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::G)) {
+		useGravity != useGravity;
+		physics->UseGravity(useGravity);
+	}
+
+	//Rotation
+	player->GetPhysicsObject()->SetAngularVelocity(Vector3(0, 0, 0));
+
+	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::Q))
+		player->GetPhysicsObject()->AddTorque(Vector3(0, 5, 0));
+	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::E))
+		player->GetPhysicsObject()->AddTorque(Vector3(0, -5, 0));
+
+	
 }
 
 void TutorialGame::UpdateKeys() {
@@ -352,7 +360,7 @@ void TutorialGame::InitWorld() {
 
 	InitMaze();
 
-	InitGameExamples();
+	//InitGameExamples();
 	InitPlayer();
 
 	InitDefaultFloor();
@@ -365,15 +373,15 @@ void TutorialGame::InitGame() {
 
 	InitMixedGridWorld(15, 15, 3.5f, 3.5f);
 	
-	BridgeConstraintTest();
+	//BridgeConstraintTest();
 	InitPlayer();
-	InitGameExamples();
+	InitMaze();
 	InitDefaultFloor();
 }
 
 void TutorialGame::InitPlayer() {
 	float meshSize = 1.0f;
-	float inverseMass = 0.5f;
+	float inverseMass = 1.0f;
 
 	player = new GameObject();
 	SphereVolume* volume = new SphereVolume(1.0f);
