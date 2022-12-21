@@ -7,7 +7,7 @@
 #include "PositionConstraint.h"
 #include "OrientationConstraint.h"
 #include "StateGameObject.h"
-
+#include "PlayerGameObject.h"
 
 
 using namespace NCL;
@@ -166,12 +166,12 @@ void TutorialGame::UpdateGame(float dt) {
 		// Set position offset on circle based on yAngle
 		Vector3 pos = Vector3(
 			(radius * sin(yAngle)) + player->GetTransform().GetPosition().x,
-			player->GetTransform().GetPosition().y + 14,
+			player->GetTransform().GetPosition().y + 10,
 			(radius * cos(yAngle)) + player->GetTransform().GetPosition().z
 		);
 
 		world->GetMainCamera()->SetPosition(pos);
-		world->GetMainCamera()->SetPitch(angles.x);
+		world->GetMainCamera()->SetPitch(angles.x+25);
 		world->GetMainCamera()->SetYaw(player->GetTransform().GetOrientation().ToEuler().y); // Now Rotates with goat
 
 		if (useGravity) {
@@ -192,6 +192,8 @@ void TutorialGame::UpdateGame(float dt) {
 }
 
 void TutorialGame::PlayerMovement() {
+	player->SetIsAttacking(false);
+
 	Matrix4 view = world->GetMainCamera()->BuildViewMatrix();
 	Matrix4 camWorld = view.Inverse();
 
@@ -214,11 +216,14 @@ void TutorialGame::PlayerMovement() {
 		player->GetPhysicsObject()->AddForce(-fwdAxis * forceMagnitude);
 
 	//Add Dash Here
-	if (Window::GetKeyboard()->KeyPressed(NCL::KeyboardKeys::SHIFT))
+	if (Window::GetKeyboard()->KeyPressed(NCL::KeyboardKeys::SHIFT)) {
 		player->GetPhysicsObject()->ApplyLinearImpulse(fwdAxis * 30.0f);
+		player->SetIsAttacking(true);
+	}
 
 	if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::G)) {
-		useGravity != useGravity;
+		std::cout << "Gravity: " << useGravity << std::endl;
+		useGravity = !useGravity;
 		physics->UseGravity(useGravity);
 	}
 
@@ -229,7 +234,10 @@ void TutorialGame::PlayerMovement() {
 		player->GetPhysicsObject()->AddTorque(Vector3(0, 5, 0));
 	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::E))
 		player->GetPhysicsObject()->AddTorque(Vector3(0, -5, 0));
-
+	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::Q) && Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::C))
+		player->GetPhysicsObject()->ApplyAngularImpulse(Vector3(0, 2, 0));
+	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::E) && Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::C))
+		player->GetPhysicsObject()->ApplyAngularImpulse(Vector3(0, -2, 0));
 	
 }
 
@@ -356,9 +364,9 @@ void TutorialGame::InitWorld() {
 
 	//InitMixedGridWorld(15, 15, 3.5f, 3.5f);
 
-	//BridgeConstraintTest();
+	BridgeConstraintTest();
 
-	InitMaze();
+	//InitMaze();
 
 	//InitGameExamples();
 	InitPlayer();
@@ -371,7 +379,7 @@ void TutorialGame::InitGame() {
 	physics->Clear();
 
 
-	InitMixedGridWorld(15, 15, 3.5f, 3.5f);
+	//InitMixedGridWorld(15, 15, 3.5f, 3.5f);
 	
 	//BridgeConstraintTest();
 	InitPlayer();
@@ -383,7 +391,7 @@ void TutorialGame::InitPlayer() {
 	float meshSize = 1.0f;
 	float inverseMass = 1.0f;
 
-	player = new GameObject();
+	player = new PlayerGameObject();
 	SphereVolume* volume = new SphereVolume(1.0f);
 
 	player->SetBoundingVolume((CollisionVolume*)volume);
@@ -404,14 +412,16 @@ void TutorialGame::InitPlayer() {
 
 	//lockedObject = player;
 	player->GetPhysicsObject()->SetElasticity(0.01);
+
+	world->SetPlayerObj(player);
 }
 
 void TutorialGame::InitMaze() {
-	AddCubeToWorld(Vector3(-40, -15, 20), Vector3(10, 10, 100), 0, 1)->GetRenderObject()->SetColour(Vector4(1, 1, 1, 1)); // Connection wall
-	AddCubeToWorld(Vector3(-80, -12, 100), Vector3(15, 4, 50), 0, 1)->GetTransform().SetOrientation(Quaternion().EulerAnglesToQuaternion(-14, 125, -10)); // Connection Ramp	
-	AddCubeToWorld(Vector3(-15, 5, -50), Vector3(15, 4, 50), 0, 1)->GetTransform().SetOrientation(Quaternion().EulerAnglesToQuaternion(-32, 90, 0)); // Upper Ramp
-	AddCubeToWorld(Vector3(-180, -7.5, 12.1), Vector3(5, 10, 55), 0, 1)->GetRenderObject()->SetColour(Vector4(1, 1, 1, 1)); // Cross 1
-	AddCubeToWorld(Vector3(-160, -7.5, 17.5), Vector3(5, 10, 55), 0, 1)->GetTransform().SetOrientation(Quaternion().EulerAnglesToQuaternion(0, 60, 0)); // Cross 2
+	AddCubeToWorld(Vector3(-40, -15, -15), Vector3(5, 5, 50), 0, 1)->GetRenderObject()->SetColour(Vector4(1, 1, 1, 1)); // Connection wall
+	AddCubeToWorld(Vector3(-80, -12, 100), Vector3(7.5, 2, 25), 0, 1)->GetTransform().SetOrientation(Quaternion().EulerAnglesToQuaternion(-14, 125, -10)); // Connection Ramp	
+	//AddCubeToWorld(Vector3(-15, 5, -50), Vector3(8.5, 2, 40), 0, 1)->GetTransform().SetOrientation(Quaternion().EulerAnglesToQuaternion(-32, 90, 0)); // Upper Ramp
+	AddCubeToWorld(Vector3(-180, -7.5, 12.1), Vector3(2.5, 5, 27.5), 0, 1)->GetRenderObject()->SetColour(Vector4(1, 1, 1, 1)); // Cross 1
+	GameObject* obj = AddCubeToWorld(Vector3(-160, -7.5, 17.5), Vector3(2.5, 5, 27.5), 0, 1);
 	//AddCubeToWorld(Vector3(100, 0, 100), Vector3(40, 5, 2.5), 10.0f, 1)->GetRenderObject()->SetColour(Vector4(0.2, 0.2, 1, 1));
 
 	AddCubeToWorld(Vector3(60, 20.06, -75), Vector3(40, 5, 40), 0, 1)->GetRenderObject()->SetColour(Vector4(1, 1, 1, 1)); // Upper level A
@@ -462,7 +472,7 @@ A single function to add a large immoveable cube to the bottom of our world
 GameObject* TutorialGame::AddFloorToWorld(const Vector3& position) {
 	GameObject* floor = new GameObject();
 
-	Vector3 floorSize = Vector3(200, 2, 200);
+	Vector3 floorSize = Vector3(250, 2, 250);
 	AABBVolume* volume = new AABBVolume(floorSize);
 	floor->SetBoundingVolume((CollisionVolume*)volume);
 	floor->GetTransform()
@@ -487,7 +497,7 @@ rigid body representation. This and the cube function will let you build a lot o
 physics worlds. You'll probably need another function for the creation of OBB cubes too.
 
 */
-GameObject* TutorialGame::AddSphereToWorld(const Vector3& position, float radius, float inverseMass) {
+GameObject* TutorialGame::AddSphereToWorld(const Vector3& position, float radius, float inverseMass, float elasticity, bool canTakedmg) {
 	GameObject* sphere = new GameObject();
 
 	Vector3 sphereSize = Vector3(radius, radius, radius);
@@ -508,13 +518,15 @@ GameObject* TutorialGame::AddSphereToWorld(const Vector3& position, float radius
 	//float random = ((float)rand()) / (float)RAND_MAX;
 	//float diff = 1.5 - 0.5;
 	//sphere->GetPhysicsObject()->SetElasticity(0.01 + (random * diff));
+	sphere->GetPhysicsObject()->SetElasticity(elasticity);
+	sphere->SetCanTakeDmg(canTakedmg);
 
 	world->AddGameObject(sphere);
 
 	return sphere;
 }
 
-GameObject* TutorialGame::AddCubeToWorld(const Vector3& position, Vector3 dimensions, float inverseMass, float elasticity) {
+GameObject* TutorialGame::AddCubeToWorld(const Vector3& position, Vector3 dimensions, float inverseMass, float elasticity, bool canTakedmg) {
 	GameObject* cube = new GameObject();
 
 	AABBVolume* volume = new AABBVolume(dimensions);
@@ -532,6 +544,7 @@ GameObject* TutorialGame::AddCubeToWorld(const Vector3& position, Vector3 dimens
 	
 	// Different material elasticities
 	cube->GetPhysicsObject()->SetElasticity(elasticity);
+	cube->SetCanTakeDmg(canTakedmg);
 
 	world->AddGameObject(cube);
 
@@ -680,10 +693,10 @@ void TutorialGame::InitMixedGridWorld(int numRows, int numCols, float rowSpacing
 			Vector3 position = Vector3(x * colSpacing, 10.0f, z * rowSpacing);
 
 			if (rand() % 2) {
-				AddCubeToWorld(position, cubeDims);
+				AddCubeToWorld(position, cubeDims, 10.f, 0.4f, true);
 			}
 			else {
-				AddSphereToWorld(position, sphereRadius);
+				AddSphereToWorld(position, sphereRadius, 10.f, 0.4f, true);
 			}
 		}
 	}
@@ -816,9 +829,13 @@ void TutorialGame::BridgeConstraintTest() {
 	for (int i = 0; i < numLinks; ++i) {
 		GameObject* block = AddCubeToWorld(startPos + Vector3((i + 1) * cubeDistance, 0, 0), cubeSize, invCubeMass);
 		PositionConstraint* constraint = new PositionConstraint(previous, block, maxDistance);
+		OrientationConstraint* ori = new OrientationConstraint(previous, block);
 		world->AddConstraint(constraint);
 		previous = block;
 	}
 	PositionConstraint* constraint = new PositionConstraint(previous, end, maxDistance);
+	OrientationConstraint* ori = new OrientationConstraint(previous, end);
+
 	world->AddConstraint(constraint);
+	world->AddConstraint(ori);
 }

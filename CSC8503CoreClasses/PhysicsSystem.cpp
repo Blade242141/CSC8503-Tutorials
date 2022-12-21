@@ -212,7 +212,15 @@ void PhysicsSystem::BasicCollisionDetection() {
 				continue;
 			CollisionDetection::CollisionInfo info;
 			if (CollisionDetection::ObjectIntersection(*i, *j, info)) {
-				//std::cout << "Collision between " << (*i)->GetName() << " and " << (*j)->GetName() << std::endl;
+				//Collision Here
+				if (info.a->GetWorldID() == gameWorld.GetPlayerObj()->GetWorldID()) {
+					std::cout << "info.a is player" << std::endl;
+					info.b->TakeDamage(gameWorld.GetPlayerObj()->GetPlayerDmg());
+				}
+				else if(info.b->GetWorldID() == gameWorld.GetPlayerObj()->GetWorldID()){
+					std::cout << "info.b is player" << std::endl;
+					info.a->TakeDamage(gameWorld.GetPlayerObj()->GetPlayerDmg());
+				}
 				ImpulseResolveCollision(*info.a, *info.b, info.point);
 				info.framesLeft = numCollisionFrames;
 				allCollisions.insert(info);

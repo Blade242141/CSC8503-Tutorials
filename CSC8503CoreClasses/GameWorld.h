@@ -4,6 +4,8 @@
 #include "Ray.h"
 #include "CollisionDetection.h"
 #include "QuadTree.h"
+#include "../CSC8503/PlayerGameObject.h";
+
 namespace NCL {
 		class Camera;
 		using Maths::Ray;
@@ -58,11 +60,16 @@ namespace NCL {
 				return worldStateCounter;
 			}
 
+			void SetPlayerObj(PlayerGameObject* p) { player = p; }
+			PlayerGameObject* GetPlayerObj() { return player; }
+
+
 		protected:
 			std::vector<GameObject*> gameObjects;
 			std::vector<Constraint*> constraints;
 
 			Camera* mainCamera;
+			PlayerGameObject* player;
 
 			bool shuffleConstraints;
 			bool shuffleObjects;

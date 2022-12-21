@@ -6,6 +6,7 @@
 #include "PhysicsSystem.h"
 
 #include "StateGameObject.h"
+#include "PlayerGameObject.h"
 
 namespace NCL {
 	namespace CSC8503 {
@@ -45,8 +46,8 @@ namespace NCL {
 			void LockedObjectMovement();
 
 			GameObject* AddFloorToWorld(const Vector3& position);
-			GameObject* AddSphereToWorld(const Vector3& position, float radius, float inverseMass = 10.0f);
-			GameObject* AddCubeToWorld(const Vector3& position, Vector3 dimensions, float inverseMass = 10.0f, float elasticity = 0.4f);
+			GameObject* AddSphereToWorld(const Vector3& position, float radius, float inverseMass = 10.0f, float elasticity = 0.4f, bool canTakedmg = false);
+			GameObject* AddCubeToWorld(const Vector3& position, Vector3 dimensions, float inverseMass = 10.0f, float elasticity = 0.4f, bool canTakeDmg = false);
 
 			GameObject* AddPlayerToWorld(const Vector3& position);
 			GameObject* AddEnemyToWorld(const Vector3& position);
@@ -59,7 +60,7 @@ namespace NCL {
 			void InitPlayer();
 			void InitGame();
 			bool isDebug;
-			GameObject* player;
+			PlayerGameObject* player;
 			void PlayerMovement();
 			void InitMaze();
 			void InitTargets();

@@ -74,7 +74,22 @@ namespace NCL::CSC8503 {
 			return worldID;
 		}
 
+		//Added, instead of creating new game obj just to add health
+		void TakeDamage(int dmg) { 
+			if (canTakeDmg) {
+				health -= dmg;
+				if (health <= 0)
+					delete this;
+			}
+		}
+
+		void SetHealth(int i) { health = i; }
+		void SetCanTakeDmg(bool b) { canTakeDmg = b; }
 	protected:
+		//Added, instead of creating new game obj just to add health
+		int health;
+		bool canTakeDmg;
+
 		Transform			transform;
 
 		CollisionVolume*	boundingVolume;
