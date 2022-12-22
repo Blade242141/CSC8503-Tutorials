@@ -66,7 +66,12 @@ namespace NCL {
 			void SpawnObjs();
 			void SpawnConnectionBridge(Vector3 startPos);
 			GameObject* AddOBBCubeToWorld(const Vector3& position, Vector3 dimensions, float inverseMass, float elasticity, bool canTakedmg);
-
+			void MainMenu();
+			vector<GameObject*> targets;
+			int* targetsLeft;
+			void InitTargets();
+			void RespawnPlayer();
+			float timer;
 
 #ifdef USEVULKAN
 			GameTechVulkanRenderer* renderer;

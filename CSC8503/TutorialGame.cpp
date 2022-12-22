@@ -29,7 +29,13 @@ TutorialGame::TutorialGame() {
 
 	isDebug = false;
 
+	timer = 120.0f;
+
 	InitialiseAssets();
+}
+
+void TutorialGame::MainMenu() {
+	
 }
 
 /*
@@ -174,12 +180,6 @@ void TutorialGame::UpdateGame(float dt) {
 		world->GetMainCamera()->SetPitch(angles.x+25);
 		world->GetMainCamera()->SetYaw(player->GetTransform().GetOrientation().ToEuler().y); // Now Rotates with goat
 
-		if (useGravity) {
-			Debug::Print("(G)ravity on", Vector2(5, 95), Debug::RED);
-		}
-		else {
-			Debug::Print("(G)ravity off", Vector2(5, 95), Debug::RED);
-		}
 
 
 		world->UpdateWorld(dt);
@@ -188,12 +188,37 @@ void TutorialGame::UpdateGame(float dt) {
 
 		renderer->Render();
 		Debug::UpdateRenderables(dt);
+
+		if (player->GetTransform().GetPosition().y <= -50)
+			RespawnPlayer();
+
+		timer -= dt;
+
+		if (useGravity) {
+			Debug::Print("(G)ravity on", Vector2(5, 95), Debug::RED);
+		}
+		else {
+			Debug::Print("(G)ravity off", Vector2(5, 95), Debug::RED);
+		}
+
+		Debug::Print("Score:" + std::to_string(player->GetScore()), Vector2(10, 20));
+		Debug::Print("Targets:" + std::to_string(*player->GetTargetInt()), Vector2(60, 20));
+		int mins = std::floor((int)round(timer) / 60);
+		int secs = (int)round(timer) - (mins * 60);
+		Debug::Print("Time Left:" + std::to_string(mins) + ":" + std::to_string(secs), Vector2(60, 25));
+
+
+		if (*player->GetTargetInt() <= 0 || timer <= 0) {
+			std::cout << "GameOver" << std::endl << "Score - " << player->GetScore() << std::endl;
+		}
 	}
 }
 
-void TutorialGame::PlayerMovement() {
-	player->SetIsAttacking(false);
+void TutorialGame::RespawnPlayer() {
+	player->GetTransform().SetPosition(Vector3(0, 2.5, 0));
+}
 
+void TutorialGame::PlayerMovement() {
 	Matrix4 view = world->GetMainCamera()->BuildViewMatrix();
 	Matrix4 camWorld = view.Inverse();
 
@@ -216,10 +241,13 @@ void TutorialGame::PlayerMovement() {
 		player->GetPhysicsObject()->AddForce(-fwdAxis * forceMagnitude);
 
 	//Add Dash Here
-	if (Window::GetKeyboard()->KeyPressed(NCL::KeyboardKeys::SHIFT)) {
+	if (Window::GetKeyboard()->KeyPressed(NCL::KeyboardKeys::SHIFT))
 		player->GetPhysicsObject()->ApplyLinearImpulse(fwdAxis * 30.0f);
+	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::SHIFT))
 		player->SetIsAttacking(true);
-	}
+	else 
+		player->SetIsAttacking(false);
+
 
 	if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::G)) {
 		std::cout << "Gravity: " << useGravity << std::endl;
@@ -234,25 +262,15 @@ void TutorialGame::PlayerMovement() {
 		player->GetPhysicsObject()->AddTorque(Vector3(0, 5, 0));
 	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::E))
 		player->GetPhysicsObject()->AddTorque(Vector3(0, -5, 0));
-	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::Q) && Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::C))
+	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::LEFT))
 		player->GetPhysicsObject()->ApplyAngularImpulse(Vector3(0, 2, 0));
-	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::E) && Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::C))
+	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::RIGHT))
 		player->GetPhysicsObject()->ApplyAngularImpulse(Vector3(0, -2, 0));
 	
-	if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::SPACE)) {
-		Ray ray = CollisionDetection::BuildRayFromMouse(*world->GetMainCamera());
-		
-		Debug::DrawLine(ray.GetPosition(), player->GetTransform().GetPosition(), Vector4(1, 1, 1, 1), 10.0f);
-	}
-	//RayCollision closestCollision;
-	//if (world->Raycast(ray, closestCollision, true)) {
-	//	selectionObject = (GameObject*)closestCollision.node;
+	//if (Window::GetKeyboard()->KeyHeld(NCL::KeyboardKeys::SPACE)) {
+	//	Ray ray = Ray(player->GetTransform().GetPosition(), player->GetTransform().GetOrientation().ToEuler().Normalised());
 
-	//	selectionObject->GetRenderObject()->SetColour(Vector4(0, 1, 0, 1));
-	//	return true;
-	//}
-	//else {
-	//	return false;
+	//	Debug::DrawLine(ray.GetPosition(), Vector3(ray.GetDirection().x + 10, 0, 0), Vector4(1, 1, 1, 1), 10.0f);
 	//}
 }
 
@@ -293,12 +311,13 @@ void TutorialGame::InitGame() {
 	//BridgeConstraintTest();
 	InitPlayer();
 	InitMaze();
+	InitTargets();
 	InitDefaultFloor();
 }
 
 void TutorialGame::InitPlayer() {
 	float meshSize = 1.0f;
-	float inverseMass = 1.0f;
+	float inverseMass = 0.5f;
 
 	player = new PlayerGameObject();
 	SphereVolume* volume = new SphereVolume(1.0f);
@@ -320,14 +339,14 @@ void TutorialGame::InitPlayer() {
 	world->GetMainCamera()->SetPosition(Vector3(player->GetTransform().GetPosition().x, player->GetTransform().GetPosition().y + 5, player->GetTransform().GetPosition().z + 10));
 
 	//lockedObject = player;
-	player->GetPhysicsObject()->SetElasticity(0.01);
+	player->GetPhysicsObject()->SetElasticity(0);
 
 	world->SetPlayerObj(player);
 }
 
 void TutorialGame::InitMaze() {
 	AddCubeToWorld(Vector3(-40, -15, -15), Vector3(5, 5, 50), 0, 1)->GetRenderObject()->SetColour(Vector4(1, 1, 1, 1)); // Connection wall
-	AddCubeToWorld(Vector3(-80, -12, 100), Vector3(7.5, 2, 25), 0, 1)->GetTransform().SetOrientation(Quaternion().EulerAnglesToQuaternion(-14, 125, -10)); // Connection Ramp	
+	//AddCubeToWorld(Vector3(-80, -12, 100), Vector3(7.5, 2, 25), 0, 1)->GetTransform().SetOrientation(Quaternion().EulerAnglesToQuaternion(-14, 125, -10)); // Connection Ramp	
 	//AddCubeToWorld(Vector3(-15, 5, -50), Vector3(8.5, 2, 40), 0, 1)->GetTransform().SetOrientation(Quaternion().EulerAnglesToQuaternion(-32, 90, 0)); // Upper Ramp
 	AddCubeToWorld(Vector3(-180, -7.5, 12.1), Vector3(2.5, 5, 27.5), 0, 1)->GetRenderObject()->SetColour(Vector4(1, 1, 1, 1)); // Cross 1
 	GameObject* obj = AddCubeToWorld(Vector3(-160, -7.5, 17.5), Vector3(2.5, 5, 27.5), 0, 1);
@@ -341,7 +360,31 @@ void TutorialGame::InitMaze() {
 	AddCubeToWorld(Vector3(60, 20.06, 200), Vector3(40, 5, 40), 0, 1)->GetRenderObject()->SetColour(Vector4(1, 1, 1, 1)); // Upper level B
 	AddCubeToWorld(Vector3(60, 0, 200), Vector3(10, 20, 10), 0, 1)->GetRenderObject()->SetColour(Vector4(1, 1, 1, 1)); // Pillar B
 
+	
+
 	//AddOBBCubeToWorld(Vector3(0, 0, -10), Vector3(5, 5, 5), 10.0, 0.4, false)->GetRenderObject()->SetColour(Vector4(1, 1, 1, 1)); // Pillar A)
+}
+
+
+void TutorialGame::InitTargets() {
+	Vector3 cubeSize = Vector3(2, 2, 2);
+	float inverseMass = 0.5;
+	float elastisity = 0.4;
+	bool canTakeDmg = true;
+
+	targets.push_back(AddCubeToWorld(Vector3(5, 5, 5), cubeSize, inverseMass, elastisity, canTakeDmg));
+	targets.push_back(AddCubeToWorld(Vector3(70, 5, -60), cubeSize, inverseMass, elastisity, canTakeDmg));
+	targets.push_back(AddCubeToWorld(Vector3(130, 5, 55), cubeSize, inverseMass, elastisity, canTakeDmg));
+	targets.push_back(AddCubeToWorld(Vector3(5, 5, -70), cubeSize, inverseMass, elastisity, canTakeDmg));;
+	targets.push_back(AddCubeToWorld(Vector3(-80, 5, 140), cubeSize, inverseMass, elastisity, canTakeDmg));
+	targets.push_back(AddCubeToWorld(Vector3(-20, 5, -90), cubeSize, inverseMass, elastisity, canTakeDmg));
+	targets.push_back(AddCubeToWorld(Vector3(-180, 5, 90), cubeSize, inverseMass, elastisity, canTakeDmg));
+
+	for (int i = 0; i < targets.size(); ++i) {
+		targets[i]->GetRenderObject()->SetColour(Vector4(1, 1, 0, 1));
+	}
+	targetsLeft = new int (targets.size());
+	player->SetTargetInt(targetsLeft);
 }
 
 void TutorialGame::SpawnConnectionBridge(Vector3 startPos) {
@@ -366,13 +409,6 @@ void TutorialGame::SpawnConnectionBridge(Vector3 startPos) {
 	}
 	PositionConstraint* constraint = new PositionConstraint(previous, end, maxDistance);
 	world->AddConstraint(constraint);
-}
-
-void TutorialGame::SpawnObjs() {
-	//Give game obj health that decrease with so much force acted apon
-	//Add objs to array for couter
-	//points from obj after attacked
-	//
 }
 
 /*

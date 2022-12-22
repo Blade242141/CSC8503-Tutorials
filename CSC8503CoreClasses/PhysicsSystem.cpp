@@ -213,14 +213,25 @@ void PhysicsSystem::BasicCollisionDetection() {
 			CollisionDetection::CollisionInfo info;
 			if (CollisionDetection::ObjectIntersection(*i, *j, info)) {
 				//Collision Here
-				if (info.a->GetWorldID() == gameWorld.GetPlayerObj()->GetWorldID()) {
-					std::cout << "info.a is player" << std::endl;
-					info.b->TakeDamage(gameWorld.GetPlayerObj()->GetPlayerDmg());
+				PlayerGameObject* player = gameWorld.GetPlayerObj();
+				Vector2 v = Vector2(0, 0);
+				if (info.a->GetWorldID() == player->GetWorldID()) {
+					//std::cout << "info.a is player" << std::endl;
+					//if (info.b->TakeDamage(player->GetPlayerDmg(), player->IsPlayerAttacking()) <= 0)
+						//gameWorld.RemoveGameObject(info.b, true);
+					v = info.b->TakeDamage(player->GetPlayerDmg(), player->IsPlayerAttacking());
 				}
-				else if(info.b->GetWorldID() == gameWorld.GetPlayerObj()->GetWorldID()){
-					std::cout << "info.b is player" << std::endl;
-					info.a->TakeDamage(gameWorld.GetPlayerObj()->GetPlayerDmg());
+				else if(info.b->GetWorldID() == player->GetWorldID()){
+					//std::cout << "info.b is player" << std::endl;
+					//if (info.a->TakeDamage(player->GetPlayerDmg(), player->IsPlayerAttacking()) <= 0)
+						//gameWorld.RemoveGameObject(info.a, true);
+					v = info.a->TakeDamage(player->GetPlayerDmg(), player->IsPlayerAttacking());
 				}
+				if (v.x < 0 && v.y == true) {
+					player->IncreaseScore(-v.x);
+					player->DecreaseTargetInt();
+				}
+
 				ImpulseResolveCollision(*info.a, *info.b, info.point);
 				info.framesLeft = numCollisionFrames;
 				allCollisions.insert(info);

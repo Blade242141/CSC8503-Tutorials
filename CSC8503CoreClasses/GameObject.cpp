@@ -14,8 +14,10 @@ GameObject::GameObject(string objectName)	{
 	physicsObject	= nullptr;
 	renderObject	= nullptr;
 	networkObject	= nullptr;
+
 	health = 100;
 	canTakeDmg = false;
+	points = 10;
 }
 
 GameObject::~GameObject()	{

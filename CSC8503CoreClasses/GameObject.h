@@ -75,20 +75,32 @@ namespace NCL::CSC8503 {
 		}
 
 		//Added, instead of creating new game obj just to add health
-		void TakeDamage(int dmg) { 
-			if (canTakeDmg) {
+		int TakeDamage(int dmg, bool playerAttacking) {
+			if (canTakeDmg && playerAttacking) {
+				std::cout << "Taking dmg - " << health << std::endl;
 				health -= dmg;
-				if (health <= 0)
-					delete this;
+				if (health <= 0 && !isDead) {
+					isActive = false;
+					health = -points;
+					isDead = true;
+				}
+				else if (isDead) {
+					health = 0;
+				}
 			}
+			return health;
 		}
 
 		void SetHealth(int i) { health = i; }
 		void SetCanTakeDmg(bool b) { canTakeDmg = b; }
+		void SetPoints(int amt) { points = amt; }
+
 	protected:
 		//Added, instead of creating new game obj just to add health
 		int health;
 		bool canTakeDmg;
+		int points;
+		bool isDead;
 
 		Transform			transform;
 

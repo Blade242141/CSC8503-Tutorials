@@ -10,6 +10,7 @@ using namespace CSC8503;
 PlayerGameObject::PlayerGameObject() {
 	isAttacking = false;
 	score = 0;
+	dmg = 100;
 }
 
 PlayerGameObject::~PlayerGameObject() {
