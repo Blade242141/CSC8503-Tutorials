@@ -29,13 +29,25 @@ TutorialGame::TutorialGame() {
 
 	isDebug = false;
 
-	timer = 120.0f;
+	gm = none;
 
 	InitialiseAssets();
 }
 
 void TutorialGame::MainMenu() {
-	
+	Debug::Print("Goat Sim", Vector2(40, 10));
+	Debug::Print("Select GameMode:", Vector2(40, 20));
+	Debug::Print("(1) : Standard ", Vector2(40, 30));
+	Debug::Print("(2) : Speed Run", Vector2(40, 40));
+
+	if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::NUM1)) {
+		timer = 120.0f;
+		gm = standard;
+	}
+	else if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::NUM2)) {
+		timer = 0.0f;
+		gm = speedrun;
+	}
 }
 
 /*
@@ -79,13 +91,32 @@ TutorialGame::~TutorialGame() {
 }
 
 void TutorialGame::UpdateGame(float dt) {
-	if (Window::GetKeyboard()->KeyHeld(KeyboardKeys::M)) {
+
+	if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::M)) {
 		isDebug = !isDebug;
 		std::cout << "Debug: " << isDebug << std::endl;
 	}
-	world->GetMainCamera()->UpdateCamera(dt);
+	switch (gm)
+	{
+	case NCL::CSC8503::TutorialGame::none:
+		MainMenu();
+		renderer->Update(dt);
+		renderer->Render();
+		Debug::UpdateRenderables(dt);
+		break;
+	case NCL::CSC8503::TutorialGame::standard:
+		UpdateGeneral(dt);
+		UpdateGMStandard(dt);
+		break;
+	case NCL::CSC8503::TutorialGame::speedrun:
+		UpdateGeneral(dt);
+		UpdateGMSpeedrun(dt);
+		break;
+	}
 
 	if (isDebug) {
+		world->GetMainCamera()->UpdateCamera(dt);
+
 		if (!inSelectionMode) {
 			world->GetMainCamera()->UpdateCamera(dt);
 		}
@@ -148,51 +179,115 @@ void TutorialGame::UpdateGame(float dt) {
 		renderer->Render();
 		Debug::UpdateRenderables(dt);
 	}
-	else {
-		Vector3 objPos = player->GetTransform().GetPosition();
-		Vector3 camPos = objPos + (lockedOffset);
+}
 
-		Matrix4 temp = Matrix4::BuildViewMatrix(camPos, objPos, Vector3(0, 1, 0));
+void TutorialGame::UpdateGMStandard(float dt) {
+	int mins = std::floor((int)round(timer) / 60);
+	int secs = (int)round(timer) - (mins * 60);
+	string tmp;
+	secs <= 9 ? tmp = "0" + std::to_string(secs) : tmp = std::to_string(secs);
 
-		Matrix4 modelMat = temp.Inverse();
-
-		Quaternion q(modelMat);
-		Vector3 angles = q.ToEuler();
-
-		float yAngle = (player->GetTransform().GetOrientation().ToEuler().y / 180 * 360) / 2; // Convert Y angle to 0-360 scale
-
-		if (yAngle < 0) { yAngle = yAngle + 180 + 180; } // Convert stop 180 jumping to 360
-
-		PlayerMovement();
-
-		yAngle = (yAngle * 3.14159265 / 180); // Get yAngle ready for pos
-
-		float radius = 20;
-
-		// Set position offset on circle based on yAngle
-		Vector3 pos = Vector3(
-			(radius * sin(yAngle)) + player->GetTransform().GetPosition().x,
-			player->GetTransform().GetPosition().y + 10,
-			(radius * cos(yAngle)) + player->GetTransform().GetPosition().z
-		);
-
-		world->GetMainCamera()->SetPosition(pos);
-		world->GetMainCamera()->SetPitch(angles.x+25);
-		world->GetMainCamera()->SetYaw(player->GetTransform().GetOrientation().ToEuler().y); // Now Rotates with goat
-
-
-
-		world->UpdateWorld(dt);
-		renderer->Update(dt);
-		physics->Update(dt);
-
-		renderer->Render();
-		Debug::UpdateRenderables(dt);
-
-		if (player->GetTransform().GetPosition().y <= -50)
-			RespawnPlayer();
-
+	if (!gameOver) {
 		timer -= dt;
+
+		Debug::Print("Time Left:" + std::to_string(mins) + ":" + tmp, Vector2(60, 25));
+
+		if (*player->GetTargetInt() <= 0 || timer <= 0) {
+			gameOver = true;
+		}
+	}
+	else {
+		Debug::Print("Goat Sim", Vector2(40, 10));
+		Debug::Print("Game Over!", Vector2(40, 20));
+		if (timer <= 0)
+			Debug::Print("Loser! ", Vector2(40, 30));
+		else 
+			Debug::Print("Winner! ", Vector2(40, 30));
+		Debug::Print("Score:" + player->GetScore(), Vector2(40, 40));
+		Debug::Print("Time Left:" + std::to_string(mins) + ":" + tmp, Vector2(40, 50));
+		Debug::Print("Press The Space Bar!", Vector2(40, 60));
+		if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::SPACE)) {
+			//Reset back to main menu
+		}
+	}
+}
+
+void TutorialGame::UpdateGMSpeedrun(float dt) {
+	int mins = std::floor((int)round(timer) / 60);
+	int secs = (int)round(timer) - (mins * 60);
+	string tmp;
+	secs <= 9 ? tmp = "0" + std::to_string(secs) : tmp = std::to_string(secs);
+
+	if (!gameOver) {
+		timer += dt;
+		Debug::Print("Time Taken:" + std::to_string(mins) + ":" + tmp, Vector2(60, 25));
+
+
+		if (*player->GetTargetInt() <= 0 || timer >= 600) { // Limited to 10 mins
+			gameOver = true;
+		}
+	}
+	else {
+		Debug::Print("Goat Sim", Vector2(40, 10));
+		Debug::Print("Game Over!", Vector2(40, 20));
+		if (timer >= 600)
+			Debug::Print("Some how LOST?! ", Vector2(40, 30));
+		else
+			Debug::Print("Winner! ", Vector2(40, 30));
+		Debug::Print("Time Taken:" + std::to_string(mins) + ":" + tmp, Vector2(40, 40));
+		Debug::Print("Press The Space Bar!", Vector2(40, 50));
+		if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::SPACE)) {
+			//Reset back to main menu
+		}
+	}
+}
+
+void TutorialGame::UpdateGeneral(float dt) {
+	if (gameOver)
+		return;
+	Vector3 objPos = player->GetTransform().GetPosition();
+	Vector3 camPos = objPos + (lockedOffset);
+
+	Matrix4 temp = Matrix4::BuildViewMatrix(camPos, objPos, Vector3(0, 1, 0));
+
+	Matrix4 modelMat = temp.Inverse();
+
+	Quaternion q(modelMat);
+	Vector3 angles = q.ToEuler();
+
+	float yAngle = (player->GetTransform().GetOrientation().ToEuler().y / 180 * 360) / 2; // Convert Y angle to 0-360 scale
+
+	if (yAngle < 0) { yAngle = yAngle + 180 + 180; } // Convert stop 180 jumping to 360
+
+	PlayerMovement();
+
+	yAngle = (yAngle * 3.14159265 / 180); // Get yAngle ready for pos
+
+	float radius = 20;
+
+	// Set position offset on circle based on yAngle
+	Vector3 pos = Vector3(
+		(radius * sin(yAngle)) + player->GetTransform().GetPosition().x,
+		player->GetTransform().GetPosition().y + 10,
+		(radius * cos(yAngle)) + player->GetTransform().GetPosition().z
+	);
+
+	world->GetMainCamera()->SetPosition(pos);
+	world->GetMainCamera()->SetPitch(angles.x + 25);
+	world->GetMainCamera()->SetYaw(player->GetTransform().GetOrientation().ToEuler().y); // Now Rotates with goat
+
+	world->UpdateWorld(dt);
+	renderer->Update(dt);
+	physics->Update(dt);
+
+	renderer->Render();
+	Debug::UpdateRenderables(dt);
+
+	if (player->GetTransform().GetPosition().y <= -50)
+		RespawnPlayer();
+
+	if (liftStateObj)
+		liftStateObj->Update(dt);
 
 		if (useGravity) {
 			Debug::Print("(G)ravity on", Vector2(5, 95), Debug::RED);
@@ -203,15 +298,6 @@ void TutorialGame::UpdateGame(float dt) {
 
 		Debug::Print("Score:" + std::to_string(player->GetScore()), Vector2(10, 20));
 		Debug::Print("Targets:" + std::to_string(*player->GetTargetInt()), Vector2(60, 20));
-		int mins = std::floor((int)round(timer) / 60);
-		int secs = (int)round(timer) - (mins * 60);
-		Debug::Print("Time Left:" + std::to_string(mins) + ":" + std::to_string(secs), Vector2(60, 25));
-
-
-		if (*player->GetTargetInt() <= 0 || timer <= 0) {
-			std::cout << "GameOver" << std::endl << "Score - " << player->GetScore() << std::endl;
-		}
-	}
 }
 
 void TutorialGame::RespawnPlayer() {
@@ -254,6 +340,9 @@ void TutorialGame::PlayerMovement() {
 		useGravity = !useGravity;
 		physics->UseGravity(useGravity);
 	}
+
+	if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::SPACE))
+		player->GetPhysicsObject()->ApplyLinearImpulse(Vector3(0, 10, 0));
 
 	//Rotation
 	player->GetPhysicsObject()->SetAngularVelocity(Vector3(0, 0, 0));
@@ -310,7 +399,8 @@ void TutorialGame::InitGame() {
 	
 	//BridgeConstraintTest();
 	InitPlayer();
-	InitMaze();
+	InitGameWorld();
+	liftStateObj = AddStateObjToWorld(Vector3(10, 0, -75), Vector3(5, 1, 5), 0.0f);
 	InitTargets();
 	InitDefaultFloor();
 }
@@ -344,7 +434,7 @@ void TutorialGame::InitPlayer() {
 	world->SetPlayerObj(player);
 }
 
-void TutorialGame::InitMaze() {
+void TutorialGame::InitGameWorld() {
 	AddCubeToWorld(Vector3(-40, -15, -15), Vector3(5, 5, 50), 0, 1)->GetRenderObject()->SetColour(Vector4(1, 1, 1, 1)); // Connection wall
 	//AddCubeToWorld(Vector3(-80, -12, 100), Vector3(7.5, 2, 25), 0, 1)->GetTransform().SetOrientation(Quaternion().EulerAnglesToQuaternion(-14, 125, -10)); // Connection Ramp	
 	//AddCubeToWorld(Vector3(-15, 5, -50), Vector3(8.5, 2, 40), 0, 1)->GetTransform().SetOrientation(Quaternion().EulerAnglesToQuaternion(-32, 90, 0)); // Upper Ramp
@@ -360,9 +450,7 @@ void TutorialGame::InitMaze() {
 	AddCubeToWorld(Vector3(60, 20.06, 200), Vector3(40, 5, 40), 0, 1)->GetRenderObject()->SetColour(Vector4(1, 1, 1, 1)); // Upper level B
 	AddCubeToWorld(Vector3(60, 0, 200), Vector3(10, 20, 10), 0, 1)->GetRenderObject()->SetColour(Vector4(1, 1, 1, 1)); // Pillar B
 
-	
-
-	//AddOBBCubeToWorld(Vector3(0, 0, -10), Vector3(5, 5, 5), 10.0, 0.4, false)->GetRenderObject()->SetColour(Vector4(1, 1, 1, 1)); // Pillar A)
+	//AddOBBCubeToWorld(Vector3(0, 0, -10), Vector3(5, 5, 5), 10.0, 0.4, false)->GetRenderObject()->SetColour(Vector4(1, 1, 1, 1));
 }
 
 

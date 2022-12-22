@@ -75,7 +75,7 @@ namespace NCL::CSC8503 {
 		}
 
 		//Added, instead of creating new game obj just to add health
-		int TakeDamage(int dmg, bool playerAttacking) {
+		Vector2 TakeDamage(int dmg, bool playerAttacking) {
 			if (canTakeDmg && playerAttacking) {
 				std::cout << "Taking dmg - " << health << std::endl;
 				health -= dmg;
@@ -88,7 +88,7 @@ namespace NCL::CSC8503 {
 					health = 0;
 				}
 			}
-			return health;
+			return Vector2(health, isDead);
 		}
 
 		void SetHealth(int i) { health = i; }

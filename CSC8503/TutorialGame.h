@@ -54,7 +54,7 @@ namespace NCL {
 			GameObject* AddBonusToWorld(const Vector3& position);
 
 			StateGameObject* AddStateObjToWorld(const Vector3& pos, Vector3 dimensions, float inverseMass);
-			StateGameObject* testStateObj;
+			StateGameObject* liftStateObj;
 
 			//Added
 			void InitPlayer();
@@ -62,8 +62,7 @@ namespace NCL {
 			bool isDebug;
 			PlayerGameObject* player;
 			void PlayerMovement();
-			void InitMaze();
-			void SpawnObjs();
+			void InitGameWorld();
 			void SpawnConnectionBridge(Vector3 startPos);
 			GameObject* AddOBBCubeToWorld(const Vector3& position, Vector3 dimensions, float inverseMass, float elasticity, bool canTakedmg);
 			void MainMenu();
@@ -72,6 +71,14 @@ namespace NCL {
 			void InitTargets();
 			void RespawnPlayer();
 			float timer;
+			
+			enum GameMode{none, standard, speedrun};
+			GameMode gm;
+			bool gameOver;
+
+			void UpdateGeneral(float dt);
+			void UpdateGMStandard(float dt);
+			void UpdateGMSpeedrun(float dt);
 
 #ifdef USEVULKAN
 			GameTechVulkanRenderer* renderer;
