@@ -344,13 +344,6 @@ void TutorialGame::PlayerMovement() {
 	else 
 		player->SetIsAttacking(false);
 
-
-	if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::G)) {
-		std::cout << "Gravity: " << useGravity << std::endl;
-		useGravity = !useGravity;
-		physics->UseGravity(useGravity);
-	}
-
 	if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::SPACE) && player->GetPhysicsObject()->GetLinearVelocity().y <= 1.0f)
 		player->GetPhysicsObject()->ApplyLinearImpulse(Vector3(0, 20, 0));
 
