@@ -11,31 +11,33 @@ StateGameObject::StateGameObject() {
 	counter = 0.0f;
 	stateMachine = new StateMachine();
 
-	State* stateA = new State([&](float dt)->void {
-		this->MoveLeft(dt);
-		});
-	State* stateB = new State([&](float dt)->void {
-		this->MoveRight(dt);
-		});
-
-	stateMachine->AddState(stateA);
-	stateMachine->AddState(stateB);
-
-	stateMachine->AddTransition(new StateTransition(stateA, stateB, [&]()->bool {return this->counter > 3.0f;}));
-	stateMachine->AddTransition(new StateTransition(stateB, stateA, [&]()->bool { return this->counter < 0.0f; }));
+	initPos = GetTransform().GetPosition();
 
 	//State* stateA = new State([&](float dt)->void {
-	//	this->MoveUp(dt);
+	//	this->MoveLeft(dt);
 	//	});
 	//State* stateB = new State([&](float dt)->void {
-	//	this->MoveDown(dt);
+	//	this->MoveRight(dt);
 	//	});
 
 	//stateMachine->AddState(stateA);
 	//stateMachine->AddState(stateB);
 
-	//stateMachine->AddTransition(new StateTransition(stateA, stateB, [&]()->bool {return this->GetTransform().GetPosition().y > 26.0f; }));
-	//stateMachine->AddTransition(new StateTransition(stateB, stateA, [&]()->bool { return this->GetTransform().GetPosition().y < 0.0f; }));
+	//stateMachine->AddTransition(new StateTransition(stateA, stateB, [&]()->bool {return this->counter > 3.0f;}));
+	//stateMachine->AddTransition(new StateTransition(stateB, stateA, [&]()->bool { return this->counter < 0.0f; }));
+
+	State* stateA = new State([&](float dt)->void {
+		this->MoveUp(dt);
+		});
+	State* stateB = new State([&](float dt)->void {
+		this->MoveDown(dt);
+		});
+
+	stateMachine->AddState(stateA);
+	stateMachine->AddState(stateB);
+
+	stateMachine->AddTransition(new StateTransition(stateA, stateB, [&]()->bool {return this->GetTransform().GetPosition().y > 20.0f; }));
+	stateMachine->AddTransition(new StateTransition(stateB, stateA, [&]()->bool { return this->GetTransform().GetPosition().y < 0.0f && counter > 5.0f; }));
 }
 
 StateGameObject::~StateGameObject() {
@@ -58,11 +60,11 @@ void StateGameObject::MoveRight(float dt) {
 
 //Added
 void StateGameObject::MoveUp(float dt) {
-	std::cout << "UP" << std::endl;
-	GetPhysicsObject()->AddForce({ 0, 20000, 0 });
+	GetPhysicsObject()->AddForce({ 0, 250, 0 });
+	counter = 0.0f;
 }
 
 void StateGameObject::MoveDown(float dt) {
-	std::cout << "Down" << std::endl;
-	GetPhysicsObject()->AddForce({ 0, -20, 0 });
+	GetPhysicsObject()->AddForce({ 0, -10, 0 });
+	if (this->GetTransform().GetPosition().y < 0.0f) { counter += dt; }
 }

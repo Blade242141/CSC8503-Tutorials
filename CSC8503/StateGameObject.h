@@ -18,6 +18,7 @@ namespace NCL {
             void MoveUp(float dt);
             void MoveDown(float dt);
 
+            Vector3 initPos;
 
             StateMachine* stateMachine;
             float counter;

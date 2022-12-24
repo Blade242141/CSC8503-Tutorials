@@ -8,6 +8,7 @@ set(Header_Files
     "NetworkedGame.h"
     "NetworkPlayer.h"
     "PlayerGameObject.h"
+	"PersonGameObject.h"
     "StateGameObject.h"
     "TutorialGame.h"
 )
@@ -19,6 +20,7 @@ set(Source_Files
     "NetworkedGame.cpp"
     "NetworkPlayer.cpp"
     "PlayerGameObject.cpp"
+	"PersonGameObject.cpp"
     "StateGameObject.cpp"
     "TutorialGame.cpp"
 )

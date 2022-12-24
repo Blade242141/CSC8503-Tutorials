@@ -60,6 +60,7 @@ void DisplayPathFinding() {
 void TestBehaviourTree() {
 	float behaviourTimer;
 	float distanceToTarget;
+
 	BehaviourAction* findKey = new BehaviourAction("Find Key", [&](float dt, BehaviourState state)->BehaviourState {
 		if (state == Initialise) {
 			std::cout << "Looking for a key" << std::endl;

@@ -18,6 +18,9 @@ GameObject::GameObject(string objectName)	{
 	health = 100;
 	canTakeDmg = false;
 	points = 10;
+
+	isBonus = false;
+	isTarget = false;
 }
 
 GameObject::~GameObject()	{

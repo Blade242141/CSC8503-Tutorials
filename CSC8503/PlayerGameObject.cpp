@@ -20,3 +20,6 @@ void PlayerGameObject::Update(float dt) {
 
 }
 
+void PlayerGameObject::OnCollisionBegin(GameObject* gm) {
+	score += gm->TakeDamage(dmg, isAttacking, targets);
+}

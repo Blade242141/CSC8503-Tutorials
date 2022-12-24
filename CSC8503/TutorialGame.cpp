@@ -24,7 +24,9 @@ TutorialGame::TutorialGame() {
 	physics = new PhysicsSystem(*world);
 
 	forceMagnitude = 10.0f;
-	useGravity = false;
+	useGravity = true;
+	physics->UseGravity(useGravity);
+
 	inSelectionMode = false;
 
 	isDebug = false;
@@ -100,19 +102,22 @@ void TutorialGame::UpdateGame(float dt) {
 	{
 	case NCL::CSC8503::TutorialGame::none:
 		MainMenu();
-		renderer->Update(dt);
-		renderer->Render();
-		Debug::UpdateRenderables(dt);
 		break;
 	case NCL::CSC8503::TutorialGame::standard:
-		UpdateGeneral(dt);
 		UpdateGMStandard(dt);
 		break;
 	case NCL::CSC8503::TutorialGame::speedrun:
-		UpdateGeneral(dt);
 		UpdateGMSpeedrun(dt);
 		break;
 	}
+
+	world->UpdateWorld(dt);
+	renderer->Update(dt);
+	if (!gameOver)
+		physics->Update(dt);
+
+	renderer->Render();
+	Debug::UpdateRenderables(dt);
 
 	if (isDebug) {
 		world->GetMainCamera()->UpdateCamera(dt);
@@ -171,17 +176,13 @@ void TutorialGame::UpdateGame(float dt) {
 
 		SelectObject();
 		MoveSelectedObject();
-
-		world->UpdateWorld(dt);
-		renderer->Update(dt);
-		physics->Update(dt);
-
-		renderer->Render();
-		Debug::UpdateRenderables(dt);
 	}
 }
 
 void TutorialGame::UpdateGMStandard(float dt) {
+	if (!gameOver)
+		UpdateGeneral(dt);
+
 	int mins = std::floor((int)round(timer) / 60);
 	int secs = (int)round(timer) - (mins * 60);
 	string tmp;
@@ -197,22 +198,26 @@ void TutorialGame::UpdateGMStandard(float dt) {
 		}
 	}
 	else {
-		Debug::Print("Goat Sim", Vector2(40, 10));
-		Debug::Print("Game Over!", Vector2(40, 20));
-		if (timer <= 0)
-			Debug::Print("Loser! ", Vector2(40, 30));
-		else 
-			Debug::Print("Winner! ", Vector2(40, 30));
-		Debug::Print("Score:" + player->GetScore(), Vector2(40, 40));
-		Debug::Print("Time Left:" + std::to_string(mins) + ":" + tmp, Vector2(40, 50));
-		Debug::Print("Press The Space Bar!", Vector2(40, 60));
+			Debug::Print("Goat Sim", Vector2(40, 10));
+			Debug::Print("Game Over!", Vector2(40, 20));
+			if (timer <= 0)
+				Debug::Print("Loser! ", Vector2(40, 30));
+			else
+				player->GetScore() < 0 ? Debug::Print("Loser! ", Vector2(40, 30)) : Debug::Print("Winner! ", Vector2(40, 30));
+			Debug::Print("Score:" + std::to_string(player->GetScore()), Vector2(40, 40));
+			Debug::Print("Time Left:" + std::to_string(mins) + ":" + tmp, Vector2(40, 50));
+			Debug::Print("Press The Space Bar!", Vector2(40, 60));
+
 		if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::SPACE)) {
-			//Reset back to main menu
+			ResetGame();
 		}
 	}
 }
 
 void TutorialGame::UpdateGMSpeedrun(float dt) {
+	if (!gameOver)
+		UpdateGeneral(dt);
+
 	int mins = std::floor((int)round(timer) / 60);
 	int secs = (int)round(timer) - (mins * 60);
 	string tmp;
@@ -237,14 +242,12 @@ void TutorialGame::UpdateGMSpeedrun(float dt) {
 		Debug::Print("Time Taken:" + std::to_string(mins) + ":" + tmp, Vector2(40, 40));
 		Debug::Print("Press The Space Bar!", Vector2(40, 50));
 		if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::SPACE)) {
-			//Reset back to main menu
+			ResetGame();
 		}
 	}
 }
 
 void TutorialGame::UpdateGeneral(float dt) {
-	if (gameOver)
-		return;
 	Vector3 objPos = player->GetTransform().GetPosition();
 	Vector3 camPos = objPos + (lockedOffset);
 
@@ -276,18 +279,22 @@ void TutorialGame::UpdateGeneral(float dt) {
 	world->GetMainCamera()->SetPitch(angles.x + 25);
 	world->GetMainCamera()->SetYaw(player->GetTransform().GetOrientation().ToEuler().y); // Now Rotates with goat
 
-	world->UpdateWorld(dt);
-	renderer->Update(dt);
-	physics->Update(dt);
+	//world->UpdateWorld(dt);
+	//renderer->Update(dt);
+	//physics->Update(dt);
 
-	renderer->Render();
-	Debug::UpdateRenderables(dt);
+	//renderer->Render();
+	//Debug::UpdateRenderables(dt);
 
 	if (player->GetTransform().GetPosition().y <= -50)
 		RespawnPlayer();
 
 	if (liftStateObj)
 		liftStateObj->Update(dt);
+
+	for (int i = 0; i < people.size(); ++i) {
+		people[i]->Update(dt);
+	}
 
 		if (useGravity) {
 			Debug::Print("(G)ravity on", Vector2(5, 95), Debug::RED);
@@ -298,6 +305,16 @@ void TutorialGame::UpdateGeneral(float dt) {
 
 		Debug::Print("Score:" + std::to_string(player->GetScore()), Vector2(10, 20));
 		Debug::Print("Targets:" + std::to_string(*player->GetTargetInt()), Vector2(60, 20));
+}
+
+void TutorialGame::ResetGame() {
+	if (gm != none) {
+		targets.clear();
+		people.clear();
+		gameOver = false;
+		InitGame();
+		gm = none;
+	}
 }
 
 void TutorialGame::RespawnPlayer() {
@@ -341,8 +358,9 @@ void TutorialGame::PlayerMovement() {
 		physics->UseGravity(useGravity);
 	}
 
-	if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::SPACE))
-		player->GetPhysicsObject()->ApplyLinearImpulse(Vector3(0, 10, 0));
+	if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::SPACE) && player->GetPhysicsObject()->GetLinearVelocity().y <= 1.0f)
+		player->GetPhysicsObject()->ApplyLinearImpulse(Vector3(0, 20, 0));
+
 
 	//Rotation
 	player->GetPhysicsObject()->SetAngularVelocity(Vector3(0, 0, 0));
@@ -400,9 +418,21 @@ void TutorialGame::InitGame() {
 	//BridgeConstraintTest();
 	InitPlayer();
 	InitGameWorld();
-	liftStateObj = AddStateObjToWorld(Vector3(10, 0, -75), Vector3(5, 1, 5), 0.0f);
+	liftStateObj = AddStateObjToWorld(Vector3(10, 0, -75), Vector3(5, 0.5, 5), 0.1f, 0.0f);
 	InitTargets();
 	InitDefaultFloor();
+	InitMixedGridWorld(7, 7, 3.5f, 3.5f);
+	GameObject* obj = AddCubeToWorld(Vector3(60, 22, -75), Vector3(1, 1, 1), 0.5, 0.4, true);
+	obj->SetPoints(50);
+	obj->SetIsBonus(true);
+	obj->GetRenderObject()->SetColour(Vector4(0, 1, 0, 1));
+
+	AddPersonToWorld({ 10, 0, 10 }, { 1, 3, 1 }, true);
+	AddPersonToWorld({ -10, 0, -10 }, { 1, 3, 1 }, true);
+	AddPersonToWorld({ 35, 0, -10 }, { 1, 3, 1 }, true);
+	AddPersonToWorld({ -20, 0, 50 }, { 1, 3, 1 }, false);
+	AddPersonToWorld({ -50, 0, 100 }, { 1, 3, 1 }, false);
+
 }
 
 void TutorialGame::InitPlayer() {
@@ -416,7 +446,7 @@ void TutorialGame::InitPlayer() {
 
 	player->GetTransform()
 		.SetScale(Vector3(meshSize, meshSize, meshSize))
-		.SetPosition(Vector3(0, 5, 0));
+		.SetPosition(Vector3(10, 0, 0));
 
 	player->SetRenderObject(new RenderObject(&player->GetTransform(), charMesh, nullptr, basicShader));
 	player->SetPhysicsObject(new PhysicsObject(&player->GetTransform(), player->GetBoundingVolume()));
@@ -453,20 +483,20 @@ void TutorialGame::InitGameWorld() {
 	//AddOBBCubeToWorld(Vector3(0, 0, -10), Vector3(5, 5, 5), 10.0, 0.4, false)->GetRenderObject()->SetColour(Vector4(1, 1, 1, 1));
 }
 
-
 void TutorialGame::InitTargets() {
 	Vector3 cubeSize = Vector3(2, 2, 2);
 	float inverseMass = 0.5;
 	float elastisity = 0.4;
 	bool canTakeDmg = true;
+	bool isTarget = true;
 
-	targets.push_back(AddCubeToWorld(Vector3(5, 5, 5), cubeSize, inverseMass, elastisity, canTakeDmg));
-	targets.push_back(AddCubeToWorld(Vector3(70, 5, -60), cubeSize, inverseMass, elastisity, canTakeDmg));
-	targets.push_back(AddCubeToWorld(Vector3(130, 5, 55), cubeSize, inverseMass, elastisity, canTakeDmg));
-	targets.push_back(AddCubeToWorld(Vector3(5, 5, -70), cubeSize, inverseMass, elastisity, canTakeDmg));;
-	targets.push_back(AddCubeToWorld(Vector3(-80, 5, 140), cubeSize, inverseMass, elastisity, canTakeDmg));
-	targets.push_back(AddCubeToWorld(Vector3(-20, 5, -90), cubeSize, inverseMass, elastisity, canTakeDmg));
-	targets.push_back(AddCubeToWorld(Vector3(-180, 5, 90), cubeSize, inverseMass, elastisity, canTakeDmg));
+	targets.push_back(AddCubeToWorld(Vector3(5, 5, 5), cubeSize, inverseMass, elastisity, canTakeDmg, isTarget));
+	targets.push_back(AddCubeToWorld(Vector3(70, 5, -60), cubeSize, inverseMass, elastisity, canTakeDmg, isTarget));
+	targets.push_back(AddCubeToWorld(Vector3(130, 5, 55), cubeSize, inverseMass, elastisity, canTakeDmg, isTarget));
+	targets.push_back(AddCubeToWorld(Vector3(40, 5, -70), cubeSize, inverseMass, elastisity, canTakeDmg, isTarget));;
+	targets.push_back(AddCubeToWorld(Vector3(-80, 5, 140), cubeSize, inverseMass, elastisity, canTakeDmg, isTarget));
+	targets.push_back(AddCubeToWorld(Vector3(-20, 5, -90), cubeSize, inverseMass, elastisity, canTakeDmg, isTarget));
+	targets.push_back(AddCubeToWorld(Vector3(-180, 5, 90), cubeSize, inverseMass, elastisity, canTakeDmg, isTarget));
 
 	for (int i = 0; i < targets.size(); ++i) {
 		targets[i]->GetRenderObject()->SetColour(Vector4(1, 1, 0, 1));
@@ -549,25 +579,44 @@ GameObject* TutorialGame::AddFloorToWorld(const Vector3& position) {
 //	return character;
 //}
 
-GameObject* TutorialGame::AddEnemyToWorld(const Vector3& position) {
-	float meshSize = 3.0f;
+PersonGameObject* TutorialGame::AddPersonToWorld(const Vector3& position, Vector3 dims, bool passive) {
 	float inverseMass = 0.5f;
 
-	GameObject* character = new GameObject();
+	PersonGameObject* character = new PersonGameObject();
 
-	AABBVolume* volume = new AABBVolume(Vector3(0.3f, 0.9f, 0.3f) * meshSize);
+	AABBVolume* volume = new AABBVolume(dims);
 	character->SetBoundingVolume((CollisionVolume*)volume);
 
 	character->GetTransform()
-		.SetScale(Vector3(meshSize, meshSize, meshSize))
-		.SetPosition(position);
+		.SetPosition(position)
+		.SetScale(dims * 2);
 
-	character->SetRenderObject(new RenderObject(&character->GetTransform(), enemyMesh, nullptr, basicShader));
+	character->SetRenderObject(new RenderObject(&character->GetTransform(), cubeMesh, basicTex, basicShader));
 	character->SetPhysicsObject(new PhysicsObject(&character->GetTransform(), character->GetBoundingVolume()));
 
 	character->GetPhysicsObject()->SetInverseMass(inverseMass);
-	character->GetPhysicsObject()->InitSphereInertia();
+	character->GetPhysicsObject()->InitCubeInertia();
 
+
+	character->GetPhysicsObject()->SetElasticity(0.01);
+	character->SetCanTakeDmg(true);
+	character->SetPoints(100);
+
+	character->SetPlayer(player);
+
+	if (passive) {
+		character->GetRenderObject()->SetColour({ 0, 0, 1, 1 });
+		character->SetCanAttackPlayer(false);
+	}
+	else {
+		character->GetRenderObject()->SetColour({ 1, 0, 0, 1 });
+		character->SetCanAttackPlayer(true);
+	}
+
+
+	people.push_back(character);
+	character->SetWorldStart({ -120, 0, -120 });
+	character->SetWorldEnd({ 120, 0, 120 });
 	world->AddGameObject(character);
 
 	return character;
@@ -593,7 +642,7 @@ GameObject* TutorialGame::AddBonusToWorld(const Vector3& position) {
 	return apple;
 }
 
-StateGameObject* TutorialGame::AddStateObjToWorld(const Vector3& pos, Vector3 dimensions, float inverseMass) {
+StateGameObject* TutorialGame::AddStateObjToWorld(const Vector3& pos, Vector3 dimensions, float inverseMass, float elasticity) {
 	StateGameObject* cube = new StateGameObject();
 
 	AABBVolume* volume = new AABBVolume(dimensions);
@@ -608,6 +657,8 @@ StateGameObject* TutorialGame::AddStateObjToWorld(const Vector3& pos, Vector3 di
 
 	cube->GetPhysicsObject()->SetInverseMass(inverseMass);
 	cube->GetPhysicsObject()->InitCubeInertia();
+	cube->GetPhysicsObject()->SetElasticity(elasticity);
+
 
 	world->AddGameObject(cube);
 
@@ -758,7 +809,7 @@ GameObject* TutorialGame::AddSphereToWorld(const Vector3& position, float radius
 	return sphere;
 }
 
-GameObject* TutorialGame::AddCubeToWorld(const Vector3& position, Vector3 dimensions, float inverseMass, float elasticity, bool canTakedmg) {
+GameObject* TutorialGame::AddCubeToWorld(const Vector3& position, Vector3 dimensions, float inverseMass, float elasticity, bool canTakedmg, bool isTarget) {
 	GameObject* cube = new GameObject();
 
 	AABBVolume* volume = new AABBVolume(dimensions);
@@ -777,7 +828,7 @@ GameObject* TutorialGame::AddCubeToWorld(const Vector3& position, Vector3 dimens
 	// Different material elasticities
 	cube->GetPhysicsObject()->SetElasticity(elasticity);
 	cube->SetCanTakeDmg(canTakedmg);
-
+	cube->SetIsTarget(true);
 	world->AddGameObject(cube);
 
 	return cube;
@@ -838,7 +889,7 @@ void TutorialGame::InitDefaultFloor() {
 
 void TutorialGame::InitGameExamples() {
 	//AddPlayerToWorld(Vector3(0, 5, 0));
-	AddEnemyToWorld(Vector3(5, 5, 0));
+	//AddPersonToWorld(Vector3(5, 5, 0));
 	AddBonusToWorld(Vector3(10, 5, 0));
 }
 
@@ -853,18 +904,18 @@ void TutorialGame::InitSphereGridWorld(int numRows, int numCols, float rowSpacin
 }
 
 void TutorialGame::InitMixedGridWorld(int numRows, int numCols, float rowSpacing, float colSpacing) {
-	float sphereRadius = 1.0f;
-	Vector3 cubeDims = Vector3(1, 1, 1);
+	float sphereRadius = 1.5f;
+	Vector3 cubeDims = Vector3(1.5f, 1.5f, 1.5f);
 
 	for (int x = 0; x < numCols; ++x) {
 		for (int z = 0; z < numRows; ++z) {
 			Vector3 position = Vector3(x * colSpacing, 10.0f, z * rowSpacing);
 
 			if (rand() % 2) {
-				AddCubeToWorld(position, cubeDims, 10.f, 0.4f, true);
+				AddCubeToWorld(position, cubeDims, 10.f, ((rand() % 100)/100), false, false);
 			}
 			else {
-				AddSphereToWorld(position, sphereRadius, 10.f, 0.4f, true);
+				AddSphereToWorld(position, sphereRadius, 10.f, ((rand() % 100) / 100), false);
 			}
 		}
 	}

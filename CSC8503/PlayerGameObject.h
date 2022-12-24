@@ -9,6 +9,7 @@ namespace NCL {
             ~PlayerGameObject();
 
             virtual void Update(float dt);
+            virtual void OnCollisionBegin(GameObject* otherObject);
 
             void SetIsAttacking(bool b) { isAttacking = b; }
             void IncreaseScore() { score++; }
@@ -25,6 +26,9 @@ namespace NCL {
             void SetTargetInt(int* i) { targets = i; }
             int* GetTargetInt() { return targets; }
             void DecreaseTargetInt() { *targets -= 1; }
+
+            void TakeScoreDamage() { score--; }
+
         protected:
             bool isAttacking;
             int score;

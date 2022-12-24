@@ -7,6 +7,7 @@
 
 #include "StateGameObject.h"
 #include "PlayerGameObject.h"
+#include "PersonGameObject.h"
 
 namespace NCL {
 	namespace CSC8503 {
@@ -47,13 +48,13 @@ namespace NCL {
 
 			GameObject* AddFloorToWorld(const Vector3& position);
 			GameObject* AddSphereToWorld(const Vector3& position, float radius, float inverseMass = 10.0f, float elasticity = 0.4f, bool canTakedmg = false);
-			GameObject* AddCubeToWorld(const Vector3& position, Vector3 dimensions, float inverseMass = 10.0f, float elasticity = 0.4f, bool canTakeDmg = false);
+			GameObject* AddCubeToWorld(const Vector3& position, Vector3 dimensions, float inverseMass = 10.0f, float elasticity = 0.4f, bool canTakeDmg = false, bool isTarget = false);
 
 			GameObject* AddPlayerToWorld(const Vector3& position);
-			GameObject* AddEnemyToWorld(const Vector3& position);
+			//GameObject* AddPersonToWorld(const Vector3& position);
 			GameObject* AddBonusToWorld(const Vector3& position);
 
-			StateGameObject* AddStateObjToWorld(const Vector3& pos, Vector3 dimensions, float inverseMass);
+			StateGameObject* AddStateObjToWorld(const Vector3& pos, Vector3 dimensions, float inverseMass, float elasticity = 0.4f);
 			StateGameObject* liftStateObj;
 
 			//Added
@@ -71,14 +72,17 @@ namespace NCL {
 			void InitTargets();
 			void RespawnPlayer();
 			float timer;
+			PersonGameObject* AddPersonToWorld(const Vector3& position, Vector3 dims, bool passive);
+			vector<PersonGameObject*> people;
 			
-			enum GameMode{none, standard, speedrun};
+			enum GameMode{none, standard, speedrun, debug, waiting};
 			GameMode gm;
 			bool gameOver;
 
 			void UpdateGeneral(float dt);
 			void UpdateGMStandard(float dt);
 			void UpdateGMSpeedrun(float dt);
+			void ResetGame();
 
 #ifdef USEVULKAN
 			GameTechVulkanRenderer* renderer;

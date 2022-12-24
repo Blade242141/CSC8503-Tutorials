@@ -74,33 +74,40 @@ namespace NCL::CSC8503 {
 			return worldID;
 		}
 
-		//Added, instead of creating new game obj just to add health
-		Vector2 TakeDamage(int dmg, bool playerAttacking) {
-			if (canTakeDmg && playerAttacking) {
-				std::cout << "Taking dmg - " << health << std::endl;
+		//Added, instead of creating new game obj
+		int TakeDamage(int dmg, bool playerAttacking, int* targetsLeft) {
+			if (isBonus && !isDead){
+				isDead = true;
+				isActive = false;
+				return points;
+				}
+			if (canTakeDmg && playerAttacking && !isDead) {
 				health -= dmg;
 				if (health <= 0 && !isDead) {
 					isActive = false;
-					health = -points;
 					isDead = true;
-				}
-				else if (isDead) {
-					health = 0;
+					if(isTarget)
+						*targetsLeft-= 1;
+					return points;
 				}
 			}
-			return Vector2(health, isDead);
+			return 0;
 		}
 
 		void SetHealth(int i) { health = i; }
 		void SetCanTakeDmg(bool b) { canTakeDmg = b; }
 		void SetPoints(int amt) { points = amt; }
 
+		void SetIsBonus(bool b) { isBonus = b; }
+		void SetIsTarget(bool b) { isTarget = b; }
 	protected:
-		//Added, instead of creating new game obj just to add health
+		//Added, instead of creating new game obj
 		int health;
 		bool canTakeDmg;
 		int points;
 		bool isDead;
+		bool isBonus;
+		bool isTarget;
 
 		Transform			transform;
 
