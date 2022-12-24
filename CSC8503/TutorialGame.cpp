@@ -37,7 +37,7 @@ TutorialGame::TutorialGame() {
 }
 
 void TutorialGame::MainMenu() {
-	Debug::Print("Goat Sim", Vector2(40, 10));
+	Debug::Print("Goat Game", Vector2(40, 10));
 	Debug::Print("Select GameMode:", Vector2(40, 20));
 	Debug::Print("(1) : Standard ", Vector2(40, 30));
 	Debug::Print("(2) : Speed Run", Vector2(40, 40));
@@ -423,7 +423,7 @@ void TutorialGame::InitGame() {
 	InitDefaultFloor();
 	InitMixedGridWorld(7, 7, 3.5f, 3.5f);
 	GameObject* obj = AddCubeToWorld(Vector3(60, 22, -75), Vector3(1, 1, 1), 0.5, 0.4, true);
-	obj->SetPoints(50);
+	obj->SetPoints(250);
 	obj->SetIsBonus(true);
 	obj->GetRenderObject()->SetColour(Vector4(0, 1, 0, 1));
 
