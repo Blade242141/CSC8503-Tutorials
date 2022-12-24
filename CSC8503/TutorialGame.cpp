@@ -296,13 +296,6 @@ void TutorialGame::UpdateGeneral(float dt) {
 		people[i]->Update(dt);
 	}
 
-		if (useGravity) {
-			Debug::Print("(G)ravity on", Vector2(5, 95), Debug::RED);
-		}
-		else {
-			Debug::Print("(G)ravity off", Vector2(5, 95), Debug::RED);
-		}
-
 		Debug::Print("Score:" + std::to_string(player->GetScore()), Vector2(10, 20));
 		Debug::Print("Targets:" + std::to_string(*player->GetTargetInt()), Vector2(60, 20));
 }
