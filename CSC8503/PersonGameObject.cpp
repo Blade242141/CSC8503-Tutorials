@@ -78,13 +78,10 @@ BehaviourSequence* PersonGameObject::CreateRoot() {
 		else if (state == Ongoing) {
 			if (timer <= 0) {
 				//return success, start woundering again
-				std::cout << "Waiting over" << std::endl;
 				return Failure;
 			}
 			else {
 				timer -= dt;
-				std::cout << "Waiting - " << timer << std::endl;
-
 			}
 		}
 		return state; // will return ongoing until timer runs out
@@ -254,9 +251,6 @@ Vector3 PersonGameObject::RunFromPlayerTarget() {
 		//give lower value
 		t.z = t.z = worldStart.z - (rand() % ((int)round(transform.GetPosition().z - worldStart.z) + 1));
 	}
-
-	std::cout << t << std::endl;
-
 
 	return t;
 }
